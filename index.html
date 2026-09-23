@@ -137,6 +137,46 @@ h1{
   font-size:12px;
 }
 
+.method-filter{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:28px 0 0;
+}
+
+.method-filter button{
+  cursor:pointer;
+  padding:7px 10px;
+  border:1px solid var(--line);
+  background:#0e0e0e;
+  color:#888;
+  font:12px ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+
+.method-filter button:hover,
+.method-filter button.active{
+  border-color:var(--blue);
+  color:#f0f0f0;
+}
+
+.method-badge{
+  display:inline-block;
+  margin-left:8px;
+  padding:2px 7px;
+  border:1px solid var(--blue);
+  color:#aeb8ff;
+  font-size:11px;
+  line-height:1.4;
+  vertical-align:middle;
+}
+
+.method-note{
+  max-width:680px;
+  margin:12px 0 0;
+  color:#707070;
+  font-size:12px;
+}
+
 .post-row h3{
   margin:0 0 10px;
   font-size:18px;
@@ -302,6 +342,17 @@ pre{
       <p class="small">
         Tento registrar principalmente o que encontrei no código, como validei e onde a proteção falhou.
       </p>
+
+      <div class="method-filter" aria-label="Filtrar publicações pelo método de pesquisa">
+        <button type="button" class="active" data-filter="all">Todos</button>
+        <button type="button" data-filter="manual">Manual</button>
+        <button type="button" data-filter="ai-assisted">AI-Assisted</button>
+        <button type="button" data-filter="automated">Automated</button>
+      </div>
+      <p class="method-note">
+        Manual = pesquisa conduzida manualmente. AI-Assisted = IA participa do processo e o resultado é validado.
+        Automated = descoberta originada por pipeline ou automação.
+      </p>
     </section>
 
     <section id="writeups" class="section">
@@ -310,9 +361,9 @@ pre{
         <span>01 publicado</span>
       </div>
 
-      <a class="post-row" href="research/cve-2025-15285.html">
+      <a class="post-row" data-method="ai-assisted" href="research/cve-2025-15285.html">
         <div>
-          <p class="post-date">2026-09-23</p>
+          <p class="post-date">2026-09-23 <span class="method-badge">AI-Assisted</span></p>
           <h3>CVE-2025-15285 — Missing Authorization no SEO Flow ≤ 2.2.1</h3>
           <p>
             O plugin verifica um HMAC inválido, retorna um WP_Error e depois ignora esse retorno.
@@ -329,9 +380,9 @@ pre{
         <span>01 publicado</span>
       </div>
 
-      <a class="post-row" href="pocs/cve-2025-15285.html">
+      <a class="post-row" data-method="ai-assisted" href="pocs/cve-2025-15285.html">
         <div>
-          <p class="post-date">2026-09-23</p>
+          <p class="post-date">2026-09-23 <span class="method-badge">AI-Assisted</span></p>
           <h3>CVE-2025-15285 — PoC interativa em Python</h3>
           <p>
             Demonstra em laboratório a criação, modificação e exclusão de posts,
@@ -362,5 +413,24 @@ pre{
     <span>poystick</span>
     <span>GitHub: TarcisioLuchesi</span>
   </footer>
+
+  <script>
+    const filterButtons = document.querySelectorAll('.method-filter button');
+    const posts = document.querySelectorAll('.post-row[data-method]');
+
+    filterButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const filter = button.dataset.filter;
+
+        filterButtons.forEach(item => item.classList.remove('active'));
+        button.classList.add('active');
+
+        posts.forEach(post => {
+          post.style.display =
+            filter === 'all' || post.dataset.method === filter ? 'grid' : 'none';
+        });
+      });
+    });
+  </script>
 </body>
 </html>

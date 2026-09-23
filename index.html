@@ -3,148 +3,72 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Poystick Security Research — pesquisa independente em segurança WordPress, code review e vulnerability research.">
-  <meta name="theme-color" content="#050507">
-  <title>Poystick Security Research</title>
+  <meta name="description" content="Poystick — pesquisa de segurança em WordPress, write-ups e provas de conceito.">
+  <meta name="theme-color" content="#0a0a0a">
+  <title>poystick</title>
   <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-  <div class="ambient ambient-red"></div>
-  <div class="ambient ambient-blue"></div>
-
   <header class="site-header">
-    <a class="brand" href="./" aria-label="Poystick Security Research">
-      <span class="brand-mark">P//</span>
-      <span>POYSTICK</span>
-    </a>
-    <nav class="nav">
-      <a href="#research">Research</a>
-      <a href="#method">Method</a>
-      <a href="#about">About</a>
-      <a class="nav-cta" href="https://github.com/TarcisioLuchesi">GitHub ↗</a>
+    <a class="logo" href="./">poystick<span>.</span></a>
+    <nav>
+      <a href="#writeups">write-ups</a>
+      <a href="#sobre">sobre</a>
+      <a href="https://github.com/TarcisioLuchesi">github ↗</a>
     </nav>
   </header>
 
-  <main>
-    <section class="hero shell">
-      <div class="kicker"><span class="status-dot"></span> INDEPENDENT SECURITY RESEARCH</div>
-      <h1>Breaking assumptions.<br><span class="gradient-text">Tracing the code.</span></h1>
-      <p class="hero-copy">
-        Pesquisa independente focada em segurança de WordPress, code review,
-        análise de vulnerabilidades e desenvolvimento de provas de conceito.
+  <main class="wrap">
+    <section class="intro">
+      <p class="label">security research / wordpress</p>
+      <h1>Poystick</h1>
+      <p class="lead">
+        Sou pesquisador de segurança com foco em plugins e temas WordPress.
+        Aqui eu publico algumas análises, CVEs, anotações de code review e PoCs.
       </p>
-      <div class="hero-actions">
-        <a class="button button-primary" href="#research">Ver pesquisas</a>
-        <a class="button button-ghost" href="https://github.com/TarcisioLuchesi">GitHub</a>
-      </div>
-
-      <div class="terminal-card" aria-label="Research terminal">
-        <div class="terminal-top">
-          <span></span><span></span><span></span>
-          <strong>research://poystick</strong>
-        </div>
-        <pre><code><span class="blue">source</span>  → request
-<span class="blue">trace</span>   → permission_callback
-<span class="red">break</span>   → authentication result discarded
-<span class="blue">sink</span>    → wp_insert_post()
-<span class="green">result</span>  → unauthorized state change</code></pre>
-      </div>
+      <p class="small">
+        Tento registrar principalmente o que encontrei no código, como validei e onde a proteção falhou.
+      </p>
     </section>
 
-    <section id="research" class="section shell">
-      <div class="section-heading">
-        <span class="eyebrow">01 // RESEARCH</span>
-        <h2>Write-ups técnicos</h2>
-        <p>Análises com foco em causa raiz, fluxo source → sink, validação dinâmica e impacto real.</p>
+    <section id="writeups" class="section">
+      <div class="section-title">
+        <h2>Write-ups</h2>
+        <span>01 publicado</span>
       </div>
 
-      <div class="research-grid">
-        <article class="research-card featured">
-          <div class="card-topline">
-            <span class="badge badge-red">CVE</span>
-            <span class="muted">2025-15285</span>
-          </div>
-          <h3>Missing Authorization in SEO Flow by LupsOnline ≤ 2.2.1</h3>
+      <a class="post-row" href="research/cve-2025-15285.html">
+        <div>
+          <p class="post-date">2026-09-23</p>
+          <h3>CVE-2025-15285 — Missing Authorization no SEO Flow ≤ 2.2.1</h3>
           <p>
-            A autenticação HMAC detecta uma credencial inválida, mas o retorno
-            de erro é descartado e operações sensíveis continuam executando.
+            O plugin verifica um HMAC inválido, retorna um WP_Error e depois ignora esse retorno.
+            A execução continua até funções como wp_insert_post().
           </p>
-          <div class="tags">
-            <span>WordPress</span>
-            <span>REST API</span>
-            <span>CWE-862</span>
-            <span>PHP</span>
-          </div>
-          <a class="card-link" href="research/cve-2025-15285.html">Ler análise completa <span>→</span></a>
-        </article>
-
-        <article class="research-card placeholder">
-          <div class="card-topline">
-            <span class="badge badge-blue">NEXT</span>
-            <span class="muted">Research log</span>
-          </div>
-          <h3>Mais write-ups em breve</h3>
-          <p>
-            Esta área será usada para documentar novas pesquisas, CVEs,
-            técnicas de code review e ferramentas construídas durante as análises.
-          </p>
-          <div class="scanline"></div>
-        </article>
-      </div>
+        </div>
+        <span class="arrow">→</span>
+      </a>
     </section>
 
-    <section id="method" class="section shell">
-      <div class="section-heading">
-        <span class="eyebrow">02 // METHOD</span>
-        <h2>Como eu analiso uma falha</h2>
+    <section id="sobre" class="section about">
+      <div class="section-title">
+        <h2>Sobre</h2>
       </div>
-
-      <div class="method-grid">
-        <div class="method-step">
-          <span class="step-number">01</span>
-          <h3>Map attack surface</h3>
-          <p>Rotas REST, AJAX actions, hooks, parâmetros e capacidades expostas pelo plugin.</p>
-        </div>
-        <div class="method-step">
-          <span class="step-number">02</span>
-          <h3>Trace source → sink</h3>
-          <p>Sigo dados controlados pelo usuário até funções sensíveis e verifico cada barreira de segurança.</p>
-        </div>
-        <div class="method-step">
-          <span class="step-number">03</span>
-          <h3>Validate dynamically</h3>
-          <p>Reproduzo a hipótese em ambiente autorizado e confirmo o efeito persistente, não apenas o HTTP status.</p>
-        </div>
-        <div class="method-step">
-          <span class="step-number">04</span>
-          <h3>Document root cause</h3>
-          <p>Registro causa raiz, impacto, PoC controlada, correção e o raciocínio usado durante a investigação.</p>
-        </div>
-      </div>
-    </section>
-
-    <section id="about" class="section shell about-grid">
-      <div>
-        <span class="eyebrow">03 // ABOUT</span>
-        <h2>Research > noise.</h2>
-      </div>
-      <div class="about-copy">
-        <p>
-          O objetivo deste site é servir como um laboratório público de aprendizado
-          e portfólio técnico: menos texto genérico e mais evidência verificável,
-          caminhos de execução e explicação da causa raiz.
-        </p>
-        <p class="responsible-note">
-          <strong>Responsible research:</strong> provas de conceito são documentadas
-          para ambientes próprios ou explicitamente autorizados.
-        </p>
-      </div>
+      <p>
+        Meu foco atual é pesquisa de vulnerabilidades em WordPress. Normalmente começo pela
+        superfície exposta pelo plugin, sigo o fluxo dos dados até um sink sensível e depois
+        valido a hipótese em laboratório.
+      </p>
+      <p>
+        Este site é só um lugar para organizar o que eu estiver estudando e publicando.
+        PoCs e testes descritos aqui são voltados a ambientes próprios ou autorizados.
+      </p>
     </section>
   </main>
 
-  <footer class="site-footer shell">
-    <span>© 2026 Poystick Security Research</span>
-    <span class="footer-code">0x50 // trace the trust boundary</span>
+  <footer class="site-footer wrap">
+    <span>poystick</span>
+    <span>GitHub: TarcisioLuchesi</span>
   </footer>
 </body>
 </html>

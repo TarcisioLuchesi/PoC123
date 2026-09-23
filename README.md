@@ -1,20 +1,11 @@
-# Poystick Security Research
+# poystick
 
-Site estático para publicar write-ups de vulnerability research, code review e segurança WordPress.
+Meu site para publicar write-ups, CVEs e anotações de pesquisa em segurança WordPress.
 
-## Estrutura
+## Conteúdo
 
-- `index.html` — página inicial
-- `assets/style.css` — tema visual
-- `research/cve-2025-15285.html` — primeiro write-up
+- página inicial: `index.html`
+- estilo: `assets/style.css`
+- CVE-2025-15285: `research/cve-2025-15285.html`
 
-## GitHub Pages
-
-Para publicar este repositório como GitHub Pages:
-
-1. torne o repositório público, se necessário;
-2. abra **Settings → Pages**;
-3. em **Build and deployment**, escolha **Deploy from a branch**;
-4. selecione **main** e **/(root)**.
-
-> As pesquisas e provas de conceito devem ser usadas apenas em ambientes próprios ou explicitamente autorizados.
+Os testes descritos nos write-ups são voltados a ambientes próprios ou explicitamente autorizados.

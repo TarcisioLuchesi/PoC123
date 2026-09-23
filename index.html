@@ -285,6 +285,7 @@ pre{
     <a class="logo" href="./">poystick<span>.</span></a>
     <nav>
       <a href="#writeups">write-ups</a>
+      <a href="#pocs">PoCs</a>
       <a href="#sobre">sobre</a>
       <a href="https://github.com/TarcisioLuchesi">github ↗</a>
     </nav>
@@ -316,6 +317,25 @@ pre{
           <p>
             O plugin verifica um HMAC inválido, retorna um WP_Error e depois ignora esse retorno.
             A execução continua até funções como wp_insert_post().
+          </p>
+        </div>
+        <span class="arrow">→</span>
+      </a>
+    </section>
+
+    <section id="pocs" class="section">
+      <div class="section-title">
+        <h2>PoCs</h2>
+        <span>01 publicado</span>
+      </div>
+
+      <a class="post-row" href="pocs/cve-2025-15285.html">
+        <div>
+          <p class="post-date">2026-09-23</p>
+          <h3>CVE-2025-15285 — PoC interativa em Python</h3>
+          <p>
+            Demonstra em laboratório a criação, modificação e exclusão de posts,
+            além da criação de categorias, usando um HMAC deliberadamente inválido.
           </p>
         </div>
         <span class="arrow">→</span>

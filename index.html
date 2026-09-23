@@ -137,14 +137,20 @@ h1{
   font-size:12px;
 }
 
-.method-filter{
+.method-filter,
+.origin-filter{
   display:flex;
   flex-wrap:wrap;
   gap:8px;
   margin:28px 0 0;
 }
 
-.method-filter button{
+.origin-filter{
+  margin-top:12px;
+}
+
+.method-filter button,
+.origin-filter button{
   cursor:pointer;
   padding:7px 10px;
   border:1px solid var(--line);
@@ -154,7 +160,9 @@ h1{
 }
 
 .method-filter button:hover,
-.method-filter button.active{
+.method-filter button.active,
+.origin-filter button:hover,
+.origin-filter button.active{
   border-color:var(--blue);
   color:#f0f0f0;
 }
@@ -353,6 +361,16 @@ pre{
         Manual = pesquisa conduzida manualmente. AI-Assisted = IA participa do processo e o resultado é validado.
         Automated = descoberta originada por pipeline ou automação.
       </p>
+
+      <div class="origin-filter" aria-label="Filtrar publicações por autoria da vulnerabilidade">
+        <button type="button" class="active" data-origin-filter="all">Todas</button>
+        <button type="button" data-origin-filter="own">CVEs próprias</button>
+        <button type="button" data-origin-filter="third-party">Terceiros</button>
+      </div>
+      <p class="method-note">
+        CVEs próprias = vulnerabilidades atribuídas a Tarcísio Luchesi (Poystick).
+        Terceiros = vulnerabilidades descobertas por outros hunters.
+      </p>
     </section>
 
     <section id="writeups" class="section">
@@ -361,9 +379,9 @@ pre{
         <span>01 publicado</span>
       </div>
 
-      <a class="post-row" data-method="ai-assisted" href="research/cve-2025-15285.html">
+      <a class="post-row" data-method="ai-assisted" data-origin="own" href="research/cve-2025-15285.html">
         <div>
-          <p class="post-date">2026-09-23 <span class="method-badge">AI-Assisted</span></p>
+          <p class="post-date">2026-09-23 <span class="method-badge">AI-Assisted</span> <span class="method-badge">Tarcísio Luchesi (Poystick)</span></p>
           <h3>CVE-2025-15285 — Missing Authorization no SEO Flow ≤ 2.2.1</h3>
           <p>
             O plugin verifica um HMAC inválido, retorna um WP_Error e depois ignora esse retorno.
@@ -380,9 +398,9 @@ pre{
         <span>01 publicado</span>
       </div>
 
-      <a class="post-row" data-method="ai-assisted" href="pocs/cve-2025-15285.html">
+      <a class="post-row" data-method="ai-assisted" data-origin="own" href="pocs/cve-2025-15285.html">
         <div>
-          <p class="post-date">2026-09-23 <span class="method-badge">AI-Assisted</span></p>
+          <p class="post-date">2026-09-23 <span class="method-badge">AI-Assisted</span> <span class="method-badge">Tarcísio Luchesi (Poystick)</span></p>
           <h3>CVE-2025-15285 — PoC interativa em Python</h3>
           <p>
             Demonstra em laboratório a criação, modificação e exclusão de posts,
@@ -416,19 +434,35 @@ pre{
 
   <script>
     const filterButtons = document.querySelectorAll('.method-filter button');
-    const posts = document.querySelectorAll('.post-row[data-method]');
+    const originButtons = document.querySelectorAll('.origin-filter button');
+    const posts = document.querySelectorAll('.post-row[data-method][data-origin]');
+
+    let activeMethod = 'all';
+    let activeOrigin = 'all';
+
+    function applyFilters() {
+      posts.forEach(post => {
+        const methodMatches = activeMethod === 'all' || post.dataset.method === activeMethod;
+        const originMatches = activeOrigin === 'all' || post.dataset.origin === activeOrigin;
+        post.style.display = methodMatches && originMatches ? 'grid' : 'none';
+      });
+    }
 
     filterButtons.forEach(button => {
       button.addEventListener('click', () => {
-        const filter = button.dataset.filter;
-
+        activeMethod = button.dataset.filter;
         filterButtons.forEach(item => item.classList.remove('active'));
         button.classList.add('active');
+        applyFilters();
+      });
+    });
 
-        posts.forEach(post => {
-          post.style.display =
-            filter === 'all' || post.dataset.method === filter ? 'grid' : 'none';
-        });
+    originButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        activeOrigin = button.dataset.originFilter;
+        originButtons.forEach(item => item.classList.remove('active'));
+        button.classList.add('active');
+        applyFilters();
       });
     });
   </script>

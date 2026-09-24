@@ -376,7 +376,7 @@ pre{
     <section id="writeups" class="section">
       <div class="section-title">
         <h2>Write-ups</h2>
-        <span>01 publicado</span>
+        <span>02 publicados</span>
       </div>
 
       <a class="post-row" data-method="ai-assisted" data-origin="own" href="research/cve-2025-15285.html">
@@ -386,6 +386,18 @@ pre{
           <p>
             O plugin verifica um HMAC inválido, retorna um WP_Error e depois ignora esse retorno.
             A execução continua até funções como wp_insert_post().
+          </p>
+        </div>
+        <span class="arrow">→</span>
+      </a>
+
+      <a class="post-row" data-method="ai-assisted" data-origin="own" href="research/paytium-5-0-3-5-0-5-xss.html">
+        <div>
+          <p class="post-date">2026-09-24 <span class="method-badge">AI-Assisted</span> <span class="method-badge">Tarcísio Luchesi (Poystick)</span></p>
+          <h3>Paytium 5.0.3 → 5.0.5 — XSS armazenado no código de desconto</h3>
+          <p>
+            Revisão do sink sem escape em 5.0.3 e confirmação da correção com esc_html()
+            em 5.0.5, com limites claros sobre o que foi e não foi corrigido.
           </p>
         </div>
         <span class="arrow">→</span>

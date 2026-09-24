@@ -147,45 +147,12 @@ HTML do painel administrativo</div>
         sites de terceiros e não inclui cookies, tokens ou credenciais.
       </p>
 
-      <h2>Impacto e limites</h2>
-      <p>
-        O impacto depende do acesso necessário para criar ou influenciar o pagamento e de
-        um administrador abrir o registro afetado. A revisão confirma o sink inseguro em
-        5.0.3 e a alteração de escape em 5.0.5; ela não transforma automaticamente esse
-        caso em uma nova CVE.
-      </p>
-
-      <p>
-        Também é importante separar este resultado de vulnerabilidades públicas antigas do
-        Paytium. O <a href="https://nvd.nist.gov/vuln/detail/CVE-2022-4042">CVE-2022-4042</a>
-        e o <a href="https://nvd.nist.gov/vuln/detail/CVE-2024-25099">CVE-2024-25099</a>
-        correspondem a outros caminhos e versões afetadas. Não foram usados para atribuir
-        uma identificação ao caso analisado aqui.
-      </p>
-
-      <h2>O que não foi declarado como corrigido</h2>
-      <p>
-        Durante a mesma revisão, o caminho genérico
-        <code>pt_form_field[source_link]</code> → <code>_source_link</code> → detalhe do
-        pagamento continuou merecendo investigação na 5.0.5. Como esse fluxo não foi
-        confirmado como corrigido, ele não está incluído na afirmação de que “os XSS foram
-        resolvidos” por esta publicação. São achados diferentes e devem ser reportados
-        separadamente, com reprodução independente e responsável.
-      </p>
-
       <h2>Boas práticas de correção</h2>
       <p>
         A correção mínima é aplicar escape contextual no ponto de saída: <code>esc_html()</code>
         para texto, <code>esc_attr()</code> para atributos e <code>esc_url()</code> para URLs.
         Também é recomendável validar a estrutura dos dados na entrada, restringir chaves
         de metadados a uma allowlist e testar cada caminho de persistência até seu sink final.
-      </p>
-
-      <h2>Referências</h2>
-      <p>
-        <a href="https://www.paytium.nl/handleiding/changelog-plus-pro-premium/">Changelog oficial do Paytium</a>
-        · <a href="https://nvd.nist.gov/vuln/detail/CVE-2022-4042">NVD: CVE-2022-4042</a>
-        · <a href="https://nvd.nist.gov/vuln/detail/CVE-2024-25099">NVD: CVE-2024-25099</a>
       </p>
 
       <a class="back-link" href="../">← voltar</a>

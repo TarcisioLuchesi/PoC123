@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Análise defensiva do XSS armazenado no código de desconto do Paytium 5.0.3 e da correção confirmada no Paytium 5.0.5.">
+  <meta name="theme-color" content="#0a0a0a">
+  <title>Paytium 5.0.3 → 5.0.5 — poystick</title>
+  <style>
+:root{--bg:#0a0a0a;--surface:#111111;--text:#e9e9e9;--muted:#8b8b8b;--line:#242424;--red:#ff3434;--blue:#3d5afe}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;font-size:15px;line-height:1.65}
+a{color:inherit} .site-header{width:min(900px,calc(100% - 32px));margin:0 auto;min-height:72px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
+.logo{font-weight:700;font-size:18px;text-decoration:none}.logo span{color:var(--red)}
+nav{display:flex;gap:22px;color:var(--muted);font-size:13px}nav a:hover{color:var(--text)}
+.article-shell{width:min(760px,calc(100% - 40px));margin:0 auto;padding:80px 0 100px}
+.article-hero{padding:20px 0 48px;border-bottom:1px solid var(--line)}
+.article-hero .kicker{color:var(--blue);font-size:12px;text-transform:uppercase}
+.article-hero h1{margin:14px 0 12px;font-size:clamp(40px,8vw,70px);line-height:.95;letter-spacing:-.07em}
+.hero-copy{margin:0;color:#bbb;font-family:Inter,system-ui,sans-serif;font-size:18px;line-height:1.6}
+.article-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}.article-meta span{padding:4px 8px;border:1px solid var(--line);color:#777;font-size:12px}
+.article{padding-top:42px;color:#c2c2c2;font-family:Inter,system-ui,sans-serif;font-size:16px;line-height:1.8}
+.article h2{margin:52px 0 12px;color:#f1f1f1;font:700 21px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace}
+.article h3{margin:30px 0 8px;color:#eee;font:700 16px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace}
+.article p code{padding:2px 5px;background:#151515;border:1px solid var(--line);border-radius:4px;color:#eee}
+pre{overflow:auto;margin:20px 0 28px;padding:18px;background:#0e0e0e;border:1px solid var(--line);border-left:3px solid var(--blue);color:#d7d7d7;font:13px/1.7 ui-monospace,SFMono-Regular,Menlo,monospace}
+.flow{white-space:pre-wrap;margin:24px 0;padding:20px;background:#0e0e0e;border:1px solid var(--line);border-left:3px solid var(--red);color:#ddd;font:13px/1.8 ui-monospace,SFMono-Regular,Menlo,monospace}
+.note{margin:24px 0;padding:18px 20px;background:#111;border:1px solid var(--line);border-left:3px solid #777}
+.note strong{color:#fff}.back-link{display:inline-block;margin-top:40px;color:#888;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}.back-link:hover{color:var(--red)}
+@media(max-width:600px){.site-header{align-items:flex-start;padding:18px 0}nav{gap:12px;flex-wrap:wrap;justify-content:flex-end}.article-shell{padding-top:56px}}
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="logo" href="../">poystick<span>.</span></a>
+    <nav>
+      <a href="../#writeups">write-ups</a>
+      <a href="../#pocs">PoCs</a>
+      <a href="../#sobre">sobre</a>
+      <a href="https://github.com/TarcisioLuchesi">github ↗</a>
+    </nav>
+  </header>
+
+  <main class="article-shell">
+    <section class="article-hero">
+      <div class="kicker">wordpress / stored xss / patch review</div>
+      <h1>Paytium 5.0.3 → 5.0.5</h1>
+      <p class="hero-copy">Código de desconto refletido no painel sem escape em 5.0.3; correção confirmada em 5.0.5.</p>
+      <div class="article-meta">
+        <span>Stored XSS</span>
+        <span>WordPress</span>
+        <span>PHP</span>
+        <span>Admin UI</span>
+        <span>corrigido em 5.0.5</span>
+      </div>
+      <div class="article-meta">
+        <span>Pesquisa: Tarcísio Luchesi (Poystick)</span>
+        <span>Ambiente: laboratório autorizado</span>
+        <span>CVE: não atribuído</span>
+      </div>
+    </section>
+
+    <article class="article">
+      <p>
+        Esta é uma análise de regressão entre o Paytium 5.0.3 e o Paytium 5.0.5.
+        O objetivo foi verificar se um valor controlável relacionado a descontos alcançava
+        um sink HTML inseguro e se a versão posterior neutralizava o mesmo caminho.
+      </p>
+
+      <div class="note">
+        <strong>Conclusão curta:</strong> o caminho do código de desconto era vulnerável a
+        XSS armazenado no painel administrativo em 5.0.3. Na cópia 5.0.5 revisada, o sink
+        passou a usar <code>esc_html()</code>. Portanto, este caso é documentado como
+        corrigido em 5.0.5, sem alegar uma nova CVE.
+      </div>
+
+      <h2>O fluxo vulnerável em 5.0.3</h2>
+      <p>
+        No processamento do pagamento, o Paytium monta os dados do desconto a partir do
+        formulário. Entre esses dados está o código do desconto, associado ao campo
+        <code>discount_code</code>.
+      </p>
+
+      <pre><code>$discount_data = array(
+    'discount_code' =&gt; $_POST['pt-discount']['code'],
+    // ...
+);</code></pre>
+
+      <p>
+        O valor é persistido junto aos dados do pagamento. Mais tarde, a tela de detalhes
+        da assinatura recupera esse valor por meio de
+        <code>$payment-&gt;get_discount_code()</code> e o concatena diretamente no HTML.
+      </p>
+
+      <pre><code>echo $payment-&gt;get_discount_value()
+    . ' (code: ' . $payment-&gt;get_discount_code() . ')';</code></pre>
+
+      <p>
+        Esse <code>echo</code> é o sink final: o conteúdo controlado termina em um contexto
+        de texto HTML sem escape de saída. Quando um administrador abre o detalhe da
+        assinatura que contém o valor armazenado, o navegador interpreta a marcação como
+        parte da página.
+      </p>
+
+      <div class="flow">entrada do código de desconto
+  ↓
+dados do pagamento
+  ↓
+persistência do pagamento
+  ↓
+get_discount_code()
+  ↓
+echo dentro de subscription-details.php
+  ↓
+HTML do painel administrativo</div>
+
+      <h2>Correção confirmada em 5.0.5</h2>
+      <p>
+        Na versão 5.0.5 comparada no laboratório, o mesmo ponto foi alterado para escapar
+        o valor antes da saída:
+      </p>
+
+      <pre><code>echo esc_html(
+    $payment-&gt;get_discount_value()
+    . ' (code: ' . $payment-&gt;get_discount_code() . ')'
+);</code></pre>
+
+      <p>
+        A correção é relevante porque ocorre no sink e no contexto correto. Mesmo que um
+        valor antigo permaneça no banco de dados, ele deixa de ser interpretado como HTML
+        nessa tela. O resultado esperado é a exibição literal dos caracteres especiais,
+        em vez da execução de JavaScript.
+      </p>
+
+      <h2>PoC segura para laboratório</h2>
+      <p>
+        A validação foi feita apenas em uma instalação própria. O marcador utilizado para
+        confirmar a hipótese foi um valor inofensivo com caracteres HTML:
+      </p>
+
+      <pre><code>&lt;img src=x onerror=alert(document.domain)&gt;</code></pre>
+
+      <p>
+        Em 5.0.3, o valor armazenado alcançava o detalhe da assinatura como marcação.
+        Em 5.0.5, a mesma sequência deve aparecer como texto escapado, por exemplo
+        <code>&amp;lt;img ...&amp;gt;</code>, sem execução. A PoC não deve ser usada contra
+        sites de terceiros e não inclui cookies, tokens ou credenciais.
+      </p>
+
+      <h2>Impacto e limites</h2>
+      <p>
+        O impacto depende do acesso necessário para criar ou influenciar o pagamento e de
+        um administrador abrir o registro afetado. A revisão confirma o sink inseguro em
+        5.0.3 e a alteração de escape em 5.0.5; ela não transforma automaticamente esse
+        caso em uma nova CVE.
+      </p>
+
+      <p>
+        Também é importante separar este resultado de vulnerabilidades públicas antigas do
+        Paytium. O <a href="https://nvd.nist.gov/vuln/detail/CVE-2022-4042">CVE-2022-4042</a>
+        e o <a href="https://nvd.nist.gov/vuln/detail/CVE-2024-25099">CVE-2024-25099</a>
+        correspondem a outros caminhos e versões afetadas. Não foram usados para atribuir
+        uma identificação ao caso analisado aqui.
+      </p>
+
+      <h2>O que não foi declarado como corrigido</h2>
+      <p>
+        Durante a mesma revisão, o caminho genérico
+        <code>pt_form_field[source_link]</code> → <code>_source_link</code> → detalhe do
+        pagamento continuou merecendo investigação na 5.0.5. Como esse fluxo não foi
+        confirmado como corrigido, ele não está incluído na afirmação de que “os XSS foram
+        resolvidos” por esta publicação. São achados diferentes e devem ser reportados
+        separadamente, com reprodução independente e responsável.
+      </p>
+
+      <h2>Boas práticas de correção</h2>
+      <p>
+        A correção mínima é aplicar escape contextual no ponto de saída: <code>esc_html()</code>
+        para texto, <code>esc_attr()</code> para atributos e <code>esc_url()</code> para URLs.
+        Também é recomendável validar a estrutura dos dados na entrada, restringir chaves
+        de metadados a uma allowlist e testar cada caminho de persistência até seu sink final.
+      </p>
+
+      <h2>Referências</h2>
+      <p>
+        <a href="https://www.paytium.nl/handleiding/changelog-plus-pro-premium/">Changelog oficial do Paytium</a>
+        · <a href="https://nvd.nist.gov/vuln/detail/CVE-2022-4042">NVD: CVE-2022-4042</a>
+        · <a href="https://nvd.nist.gov/vuln/detail/CVE-2024-25099">NVD: CVE-2024-25099</a>
+      </p>
+
+      <a class="back-link" href="../">← voltar</a>
+    </article>
+  </main>
+
+  <footer class="site-footer" style="width:min(760px,calc(100% - 40px));margin:0 auto;padding:28px 0 42px;color:#606060;font-size:12px">
+    <span>poystick</span>
+    <span>Paytium 5.0.3 → 5.0.5</span>
+  </footer>
+</body>
+</html>

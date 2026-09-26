@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Metodologia WordPress criada por Tarcísio Luchesi (Poystick).">
+  <meta name="theme-color" content="#0a0a0a">
+  <title>Metodologia WordPress — poystick</title>
+  <style>
+:root{
+  --bg:#0a0a0a;
+  --surface:#111111;
+  --text:#e9e9e9;
+  --muted:#8b8b8b;
+  --line:#242424;
+  --red:#ff3434;
+  --blue:#3d5afe;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;
+  font-size:15px;
+  line-height:1.65;
+}
+
+a{color:inherit;text-decoration:none}
+
+.wrap{
+  width:min(820px,calc(100% - 40px));
+  margin:0 auto;
+}
+
+.site-header{
+  width:min(900px,calc(100% - 32px));
+  margin:0 auto;
+  min-height:72px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid var(--line);
+}
+
+.logo{
+  font-weight:700;
+  font-size:18px;
+}
+
+.logo span{color:var(--red)}
+
+nav{
+  display:flex;
+  gap:22px;
+  color:var(--muted);
+  font-size:13px;
+}
+
+nav a:hover{color:var(--text)}
+
+.intro{
+  padding:110px 0 90px;
+  border-bottom:1px solid var(--line);
+}
+
+.label{
+  margin:0 0 18px;
+  color:var(--blue);
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+
+h1{
+  margin:0 0 24px;
+  font-size:clamp(48px,10vw,88px);
+  line-height:.95;
+  letter-spacing:-.07em;
+}
+
+.lead{
+  max-width:680px;
+  margin:0;
+  font-family:Inter,system-ui,sans-serif;
+  font-size:20px;
+  line-height:1.6;
+  color:#d1d1d1;
+}
+
+.small{
+  max-width:620px;
+  margin:22px 0 0;
+  color:var(--muted);
+}
+
+.section{
+  padding:72px 0;
+  border-bottom:1px solid var(--line);
+}
+
+.section-title{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:20px;
+  margin-bottom:28px;
+}
+
+.section-title h2{
+  margin:0;
+  font-size:17px;
+}
+
+.section-title span{
+  color:#666;
+  font-size:12px;
+}
+
+.post-row{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:24px;
+  padding:26px 0;
+  border-top:1px solid var(--line);
+}
+
+.post-row:hover h3{color:var(--red)}
+.post-row:hover .arrow{color:var(--blue);transform:translateX(4px)}
+
+.post-date{
+  margin:0 0 10px;
+  color:#666;
+  font-size:12px;
+}
+
+.method-filter,
+.origin-filter{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:28px 0 0;
+}
+
+.origin-filter{
+  margin-top:12px;
+}
+
+.method-filter button,
+.origin-filter button{
+  cursor:pointer;
+  padding:7px 10px;
+  border:1px solid var(--line);
+  background:#0e0e0e;
+  color:#888;
+  font:12px ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+
+.method-filter button:hover,
+.method-filter button.active,
+.origin-filter button:hover,
+.origin-filter button.active{
+  border-color:var(--blue);
+  color:#f0f0f0;
+}
+
+.method-badge{
+  display:inline-block;
+  margin-left:8px;
+  padding:2px 7px;
+  border:1px solid var(--blue);
+  color:#aeb8ff;
+  font-size:11px;
+  line-height:1.4;
+  vertical-align:middle;
+}
+
+.method-note{
+  max-width:680px;
+  margin:12px 0 0;
+  color:#707070;
+  font-size:12px;
+}
+
+.post-row h3{
+  margin:0 0 10px;
+  font-size:18px;
+  line-height:1.45;
+  transition:color .15s ease;
+}
+
+.post-row p{
+  margin:0;
+  color:var(--muted);
+  max-width:690px;
+}
+
+.arrow{
+  align-self:center;
+  color:#777;
+  font-size:24px;
+  transition:.15s ease;
+}
+
+.about p{
+  max-width:700px;
+  color:#aaa;
+}
+
+.site-footer{
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  padding:28px 0 42px;
+  color:#606060;
+  font-size:12px;
+}
+
+/* article */
+
+.article-shell{
+  width:min(760px,calc(100% - 40px));
+  margin:0 auto;
+  padding:80px 0 100px;
+}
+
+.article-hero{
+  padding:20px 0 48px;
+  border-bottom:1px solid var(--line);
+}
+
+.article-hero .kicker{
+  color:var(--blue);
+  font-size:12px;
+  text-transform:uppercase;
+}
+
+.article-hero h1{
+  margin:14px 0 12px;
+  font-size:clamp(40px,8vw,70px);
+}
+
+.hero-copy{
+  margin:0;
+  color:#bbb;
+  font-family:Inter,system-ui,sans-serif;
+  font-size:18px;
+  line-height:1.6;
+}
+
+.article-meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:22px;
+}
+
+.article-meta span{
+  padding:4px 8px;
+  border:1px solid var(--line);
+  color:#777;
+  font-size:12px;
+}
+
+.article{
+  padding-top:42px;
+  color:#c2c2c2;
+  font-family:Inter,system-ui,sans-serif;
+  font-size:16px;
+  line-height:1.8;
+}
+
+.article h2{
+  margin:52px 0 12px;
+  color:#f1f1f1;
+  font:700 21px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+
+.article p code{
+  padding:2px 5px;
+  background:#151515;
+  border:1px solid var(--line);
+  border-radius:4px;
+  color:#eee;
+}
+
+pre{
+  overflow:auto;
+  margin:20px 0 28px;
+  padding:18px;
+  background:#0e0e0e;
+  border:1px solid var(--line);
+  border-left:3px solid var(--blue);
+  color:#d7d7d7;
+  font:13px/1.7 ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+
+.flow{
+  white-space:pre-wrap;
+  margin:24px 0;
+  padding:20px;
+  background:#0e0e0e;
+  border:1px solid var(--line);
+  border-left:3px solid var(--red);
+  color:#ddd;
+  font:13px/1.8 ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+
+.back-link{
+  display:inline-block;
+  margin-top:40px;
+  color:#888;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+
+.back-link:hover{color:var(--red)}
+
+@media(max-width:600px){
+  .site-header{align-items:flex-start;padding:18px 0}
+  nav{gap:12px;flex-wrap:wrap;justify-content:flex-end}
+  .intro{padding:76px 0 64px}
+  .lead{font-size:18px}
+  .site-footer{flex-direction:column}
+}
+
+</style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="logo" href="./">poystick<span>.</span></a>
+    <nav>
+      <a href="./#writeups">write-ups</a>
+      <a href="./#pocs">PoCs</a>
+      <a href="methodology.html">metodologia de estudo</a>
+      <a href="wordpress-methodology.html">metodologia WordPress</a>
+      <a href="./#sobre">sobre</a>
+      <a href="https://github.com/TarcisioLuchesi">github ↗</a>
+    </nav>
+  </header>
+
+  <main class="article-shell">
+    <section class="article-hero">
+      <div class="kicker">wordpress security research</div>
+      <h1>Metodologia WordPress</h1>
+      <p class="hero-copy">Metodologia criada por Tarcísio Luchesi (Poystick).</p>
+      <div class="article-meta">
+        <span>Autor: Tarcísio Luchesi (Poystick)</span>
+        <span>Status: conteúdo em preparação</span>
+      </div>
+    </section>
+
+    <article class="article">
+      <p>O conteúdo completo da metodologia de pesquisa em WordPress será publicado aqui.</p>
+      <a class="back-link" href="./">← voltar</a>
+    </article>
+  </main>
+
+  <footer class="site-footer wrap">
+    <span>poystick</span>
+    <span>metodologia WordPress — Tarcísio Luchesi (Poystick)</span>
+  </footer>
+</body>
+</html>

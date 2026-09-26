@@ -1,0 +1,749 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Metodologia de estudo — Poystick.">
+  <meta name="theme-color" content="#0a0a0a">
+  <title>Metodologia — poystick</title>
+  <style>
+:root{
+  --bg:#0a0a0a;
+  --surface:#111111;
+  --text:#e9e9e9;
+  --muted:#8b8b8b;
+  --line:#242424;
+  --red:#ff3434;
+  --blue:#3d5afe;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;
+  font-size:15px;
+  line-height:1.65;
+}
+
+a{color:inherit;text-decoration:none}
+
+.wrap{
+  width:min(820px,calc(100% - 40px));
+  margin:0 auto;
+}
+
+.site-header{
+  width:min(900px,calc(100% - 32px));
+  margin:0 auto;
+  min-height:72px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid var(--line);
+}
+
+.logo{
+  font-weight:700;
+  font-size:18px;
+}
+
+.logo span{color:var(--red)}
+
+nav{
+  display:flex;
+  gap:22px;
+  color:var(--muted);
+  font-size:13px;
+}
+
+nav a:hover{color:var(--text)}
+
+.intro{
+  padding:110px 0 90px;
+  border-bottom:1px solid var(--line);
+}
+
+.label{
+  margin:0 0 18px;
+  color:var(--blue);
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+
+h1{
+  margin:0 0 24px;
+  font-size:clamp(48px,10vw,88px);
+  line-height:.95;
+  letter-spacing:-.07em;
+}
+
+.lead{
+  max-width:680px;
+  margin:0;
+  font-family:Inter,system-ui,sans-serif;
+  font-size:20px;
+  line-height:1.6;
+  color:#d1d1d1;
+}
+
+.small{
+  max-width:620px;
+  margin:22px 0 0;
+  color:var(--muted);
+}
+
+.section{
+  padding:72px 0;
+  border-bottom:1px solid var(--line);
+}
+
+.section-title{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:20px;
+  margin-bottom:28px;
+}
+
+.section-title h2{
+  margin:0;
+  font-size:17px;
+}
+
+.section-title span{
+  color:#666;
+  font-size:12px;
+}
+
+.post-row{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:24px;
+  padding:26px 0;
+  border-top:1px solid var(--line);
+}
+
+.post-row:hover h3{color:var(--red)}
+.post-row:hover .arrow{color:var(--blue);transform:translateX(4px)}
+
+.post-date{
+  margin:0 0 10px;
+  color:#666;
+  font-size:12px;
+}
+
+.method-filter,
+.origin-filter{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:28px 0 0;
+}
+
+.origin-filter{
+  margin-top:12px;
+}
+
+.method-filter button,
+.origin-filter button{
+  cursor:pointer;
+  padding:7px 10px;
+  border:1px solid var(--line);
+  background:#0e0e0e;
+  color:#888;
+  font:12px ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+
+.method-filter button:hover,
+.method-filter button.active,
+.origin-filter button:hover,
+.origin-filter button.active{
+  border-color:var(--blue);
+  color:#f0f0f0;
+}
+
+.method-badge{
+  display:inline-block;
+  margin-left:8px;
+  padding:2px 7px;
+  border:1px solid var(--blue);
+  color:#aeb8ff;
+  font-size:11px;
+  line-height:1.4;
+  vertical-align:middle;
+}
+
+.method-note{
+  max-width:680px;
+  margin:12px 0 0;
+  color:#707070;
+  font-size:12px;
+}
+
+.post-row h3{
+  margin:0 0 10px;
+  font-size:18px;
+  line-height:1.45;
+  transition:color .15s ease;
+}
+
+.post-row p{
+  margin:0;
+  color:var(--muted);
+  max-width:690px;
+}
+
+.arrow{
+  align-self:center;
+  color:#777;
+  font-size:24px;
+  transition:.15s ease;
+}
+
+.about p{
+  max-width:700px;
+  color:#aaa;
+}
+
+.site-footer{
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  padding:28px 0 42px;
+  color:#606060;
+  font-size:12px;
+}
+
+/* article */
+
+.article-shell{
+  width:min(760px,calc(100% - 40px));
+  margin:0 auto;
+  padding:80px 0 100px;
+}
+
+.article-hero{
+  padding:20px 0 48px;
+  border-bottom:1px solid var(--line);
+}
+
+.article-hero .kicker{
+  color:var(--blue);
+  font-size:12px;
+  text-transform:uppercase;
+}
+
+.article-hero h1{
+  margin:14px 0 12px;
+  font-size:clamp(40px,8vw,70px);
+}
+
+.hero-copy{
+  margin:0;
+  color:#bbb;
+  font-family:Inter,system-ui,sans-serif;
+  font-size:18px;
+  line-height:1.6;
+}
+
+.article-meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:22px;
+}
+
+.article-meta span{
+  padding:4px 8px;
+  border:1px solid var(--line);
+  color:#777;
+  font-size:12px;
+}
+
+.article{
+  padding-top:42px;
+  color:#c2c2c2;
+  font-family:Inter,system-ui,sans-serif;
+  font-size:16px;
+  line-height:1.8;
+}
+
+.article h2{
+  margin:52px 0 12px;
+  color:#f1f1f1;
+  font:700 21px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+
+.article p code{
+  padding:2px 5px;
+  background:#151515;
+  border:1px solid var(--line);
+  border-radius:4px;
+  color:#eee;
+}
+
+pre{
+  overflow:auto;
+  margin:20px 0 28px;
+  padding:18px;
+  background:#0e0e0e;
+  border:1px solid var(--line);
+  border-left:3px solid var(--blue);
+  color:#d7d7d7;
+  font:13px/1.7 ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+
+.flow{
+  white-space:pre-wrap;
+  margin:24px 0;
+  padding:20px;
+  background:#0e0e0e;
+  border:1px solid var(--line);
+  border-left:3px solid var(--red);
+  color:#ddd;
+  font:13px/1.8 ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+
+.back-link{
+  display:inline-block;
+  margin-top:40px;
+  color:#888;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+
+.back-link:hover{color:var(--red)}
+
+@media(max-width:600px){
+  .site-header{align-items:flex-start;padding:18px 0}
+  nav{gap:12px;flex-wrap:wrap;justify-content:flex-end}
+  .intro{padding:76px 0 64px}
+  .lead{font-size:18px}
+  .site-footer{flex-direction:column}
+}
+
+</style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="logo" href="./">poystick<span>.</span></a>
+    <nav>
+      <a href="./#writeups">write-ups</a>
+      <a href="./#pocs">PoCs</a>
+      <a href="methodology.html">metodologia</a>
+      <a href="./#sobre">sobre</a>
+      <a href="https://github.com/TarcisioLuchesi">github ↗</a>
+    </nav>
+  </header>
+
+  <main class="article-shell">
+    <section class="article-hero">
+      <div class="kicker">PT-BR / English</div>
+      <h1>Metodologia</h1>
+    </section>
+
+    <article class="article" id="pt-br">
+      <h2>Você Realmente Sabe Estudar?</h2>
+
+      <p>Você realmente sabe estudar?</p>
+
+      <p>A maioria das pessoas acha que você desenvolve uma mentalidade de estudo da noite para o dia, mas não é assim que funciona.</p>
+
+      <p>Eu passei cerca de três anos aprendendo sobre psicologia da educação com minhas psicólogas e também fazendo minhas próprias pesquisas pela internet.</p>
+
+      <p>Se você quer estudar direito, principalmente coisas práticas como bug bounty, esqueça essa ideia de ler livros do começo ao fim.</p>
+
+      <p>Estou falando sério.</p>
+
+      <p>Aprenda o básico de Linux e redes — e quando eu digo básico, é básico mesmo. Depois disso, comece a se aprofundar em vulnerabilidades por meio de artigos, writeups, labs, CTFs e pesquisas reais.</p>
+
+      <p>Use livros como último recurso.</p>
+
+      <p>Para mim, livros funcionam melhor como material de consulta, principalmente quando quero confirmar alguma coisa, entender um conceito de forma mais profunda ou validar algo que a IA gerou.</p>
+
+      <h2>A IA é uma ferramenta poderosa de estudo</h2>
+
+      <p>A IA é absurdamente poderosa para aprender.</p>
+
+      <p>Ela foi treinada com conteúdo de várias áreas diferentes, linguagens de programação, assuntos técnicos, matemática, ciência, cibersegurança e muito mais.</p>
+
+      <p>É um modelo de propósito geral, mas pode ser muito boa em assuntos técnicos, e bug bounty se encaixa perfeitamente nisso.</p>
+
+      <p>Muito do conhecimento que você procura já está dentro da IA.</p>
+
+      <p>E sim, meu nobre, em muitos assuntos a IA provavelmente sabe muito mais do que você.</p>
+
+      <p>Não subestime ela.</p>
+
+      <p>Use.</p>
+
+      <p>Faça perguntas.</p>
+
+      <p>Peça para ela explicar a mesma coisa de cinco formas diferentes.</p>
+
+      <p>Peça exemplos.</p>
+
+      <p>Peça analogias.</p>
+
+      <p>Peça para simplificar.</p>
+
+      <p>Peça para analisar código.</p>
+
+      <p>Peça para explicar por que uma vulnerabilidade existe.</p>
+
+      <p>Depois valide o que ela te entregar.</p>
+
+      <p>A IA deve ser sua ferramenta, não o seu cérebro.</p>
+
+      <h2>Ler ou assistir a vídeos?</h2>
+
+      <p>Os dois são bons.</p>
+
+      <p>Pessoalmente, estou planejando criar materiais escritos e depois deixar alguém estudar esses materiais e transformá-los em vídeos.</p>
+
+      <p>Isso facilitaria muito as coisas.</p>
+
+      <p>Eu crio a estrutura, o roteiro e o conhecimento, e alguém com uma boa didática explica tudo por vídeo.</p>
+
+      <p>Vou tentar encontrar alguém que realmente saiba ensinar.</p>
+
+      <p>Porque saber alguma coisa e saber ensinar alguma coisa são duas habilidades completamente diferentes.</p>
+
+      <h2>Dicas para estudar lendo</h2>
+
+      <p>Leia em voz alta.</p>
+
+      <p>Se não entendeu alguma coisa, leia de novo.</p>
+
+      <p>E de novo.</p>
+
+      <p>Repita até o seu cérebro finalmente conectar os pontos.</p>
+
+      <p>Anote as coisas se isso te ajudar a compreender melhor.</p>
+
+      <p>Troque palavras complicadas por sinônimos mais simples.</p>
+
+      <p>Tente explicar o conceito usando suas próprias palavras.</p>
+
+      <p>Se ainda não entendeu, pare.</p>
+
+      <p>Volte no dia seguinte.</p>
+
+      <p>Tente novamente.</p>
+
+      <p>Talvez você ainda não entenda.</p>
+
+      <p>Tudo bem.</p>
+
+      <p>Volte de novo.</p>
+
+      <p>Em algum momento, você vai entender.</p>
+
+      <p>O importante é a persistência.</p>
+
+      <h2>Videoaulas</h2>
+
+      <p>Quando estiver assistindo a uma videoaula, não fique apenas olhando como se estivesse assistindo Netflix.</p>
+
+      <p>Estude de verdade.</p>
+
+      <p>Se a pessoa falar alguma coisa importante, pause o vídeo.</p>
+
+      <p>Pegue seu caderno e anote.</p>
+
+      <p>Mas não copie as coisas de forma automática.</p>
+
+      <p>Pense no que você está escrevendo.</p>
+
+      <p>Tente entender cada frase.</p>
+
+      <p>Pergunte para si mesmo:</p>
+
+      <p>“Eu realmente entendi isso?”</p>
+
+      <p>Se a resposta for não, volte.</p>
+
+      <p>Isso é estudo ativo.</p>
+
+      <p>Você não está apenas consumindo conteúdo.</p>
+
+      <p>Você está interagindo com ele.</p>
+
+      <h2>Revisão espaçada</h2>
+
+      <p>Pessoalmente, eu não gosto de forçar revisão espaçada em bug bounty.</p>
+
+      <p>Bug bounty é algo extremamente prático.</p>
+
+      <p>Se você pratica todos os dias, vai acabar encontrando os mesmos conceitos várias vezes.</p>
+
+      <p>XSS.</p>
+
+      <p>Autorização.</p>
+
+      <p>Autenticação.</p>
+
+      <p>Sources e sinks.</p>
+
+      <p>Sanitização.</p>
+
+      <p>Nonces.</p>
+
+      <p>Endpoints REST.</p>
+
+      <p>Hooks AJAX.</p>
+
+      <p>Entrada controlada pelo usuário.</p>
+
+      <p>Esses padrões continuam aparecendo.</p>
+
+      <p>Pratique o suficiente e eles começam a entrar naturalmente na sua memória de longo prazo.</p>
+
+      <p>Em vez de ficar relendo resumos o tempo todo, use suas anotações quando realmente precisar delas.</p>
+
+      <p>Antes de um CTF.</p>
+
+      <p>Antes de um lab.</p>
+
+      <p>Quando esquecer alguma coisa.</p>
+
+      <p>Quando encontrar uma vulnerabilidade e precisar entender algum conceito específico.</p>
+
+      <p>Isso é estudar sob demanda.</p>
+
+      <h2>Conclusão</h2>
+
+      <p>Essa é apenas a mentalidade básica que funciona para mim.</p>
+
+      <p>Agora é sua responsabilidade construir o seu próprio método de estudo.</p>
+
+      <p>Talvez tudo o que eu falei funcione perfeitamente para você.</p>
+
+      <p>Talvez metade funcione.</p>
+
+      <p>Talvez nada funcione.</p>
+
+      <p>E isso é completamente normal.</p>
+
+      <p>Aprender é algo pessoal.</p>
+
+      <p>Use IA.</p>
+
+      <p>Experimente.</p>
+
+      <p>Mude seu método.</p>
+
+      <p>Entenda como o seu próprio cérebro aprende.</p>
+
+      <p>E construa um sistema de estudo que realmente funcione para você. 😀</p>
+    </article>
+
+    <article class="article" id="english" style="margin-top:80px;padding-top:70px;border-top:1px solid var(--line);">
+      <h2>Do You Really Know How to Study?</h2>
+
+      <p>Do you really know how to study?</p>
+
+      <p>Most people think you build a study mindset overnight, but that’s not how it works.</p>
+
+      <p>I spent around three years learning about educational psychology with my psychologists and also doing my own research on the internet.</p>
+
+      <p>If you want to study properly, especially practical stuff like bug bounty, forget about reading books from cover to cover.</p>
+
+      <p>I’m serious.</p>
+
+      <p>Learn the basics of Linux and networking — and I mean the basics. After that, start going deeper into vulnerabilities through articles, writeups, labs, CTFs, and real research.</p>
+
+      <p>Use books as a last resource.</p>
+
+      <p>For me, books are better as reference material, especially when I want to confirm something, understand a concept more deeply, or validate something AI generated.</p>
+
+      <h2>AI Is a Powerful Study Tool</h2>
+
+      <p>AI is insanely powerful for learning.</p>
+
+      <p>It was trained on content from many different fields, programming languages, technical topics, mathematics, science, cybersecurity, and a lot more.</p>
+
+      <p>It is a general-purpose model, but it can be really good at technical subjects, and bug bounty fits perfectly into that.</p>
+
+      <p>A lot of the knowledge you are looking for is already inside AI.</p>
+
+      <p>And yeah, my friend, in many subjects AI probably knows way more than you do.</p>
+
+      <p>Don’t underestimate it.</p>
+
+      <p>Use it.</p>
+
+      <p>Ask questions.</p>
+
+      <p>Ask it to explain the same thing in five different ways.</p>
+
+      <p>Ask for examples.</p>
+
+      <p>Ask for analogies.</p>
+
+      <p>Ask it to simplify things.</p>
+
+      <p>Ask it to analyze code.</p>
+
+      <p>Ask it to explain why a vulnerability exists.</p>
+
+      <p>Then validate what it gives you.</p>
+
+      <p>AI should be your tool, not your brain.</p>
+
+      <h2>Reading or Watching Videos?</h2>
+
+      <p>Both are good.</p>
+
+      <p>Personally, I’m planning to create written materials and then let someone study those materials and turn them into videos.</p>
+
+      <p>That would make things way easier.</p>
+
+      <p>I create the structure, the script, and the knowledge, and someone with good teaching skills explains it through video.</p>
+
+      <p>I’ll try to find someone who actually knows how to teach.</p>
+
+      <p>Because knowing something and knowing how to teach something are two completely different skills.</p>
+
+      <h2>Tips for Studying by Reading</h2>
+
+      <p>Read out loud.</p>
+
+      <p>If you don’t understand something, read it again.</p>
+
+      <p>And again.</p>
+
+      <p>Repeat it until your brain finally connects the dots.</p>
+
+      <p>Write things down if that helps you understand them.</p>
+
+      <p>Replace complicated words with simple synonyms.</p>
+
+      <p>Try explaining the concept using your own words.</p>
+
+      <p>If you still don’t understand it, stop.</p>
+
+      <p>Come back the next day.</p>
+
+      <p>Try again.</p>
+
+      <p>Maybe you still won’t understand it.</p>
+
+      <p>That’s fine.</p>
+
+      <p>Come back again.</p>
+
+      <p>At some point, you will understand.</p>
+
+      <p>The important thing is persistence.</p>
+
+      <h2>Video Lessons</h2>
+
+      <p>When you are watching a video lesson, don’t just sit there watching it like Netflix.</p>
+
+      <p>Study it.</p>
+
+      <p>If the person says something important, pause the video.</p>
+
+      <p>Take your notebook and write it down.</p>
+
+      <p>But don’t copy things automatically.</p>
+
+      <p>Think about what you are writing.</p>
+
+      <p>Try to understand every sentence.</p>
+
+      <p>Ask yourself:</p>
+
+      <p>“Do I actually understand this?”</p>
+
+      <p>If the answer is no, go back.</p>
+
+      <p>That’s active learning.</p>
+
+      <p>You are not just consuming content.</p>
+
+      <p>You are interacting with it.</p>
+
+      <h2>Spaced Repetition</h2>
+
+      <p>Personally, I don’t like forcing spaced repetition into bug bounty.</p>
+
+      <p>Bug bounty is extremely practical.</p>
+
+      <p>If you practice every day, you will constantly see the same concepts again.</p>
+
+      <p>XSS.</p>
+
+      <p>Authorization.</p>
+
+      <p>Authentication.</p>
+
+      <p>Sources and sinks.</p>
+
+      <p>Sanitization.</p>
+
+      <p>Nonces.</p>
+
+      <p>REST endpoints.</p>
+
+      <p>AJAX hooks.</p>
+
+      <p>User-controlled input.</p>
+
+      <p>Those patterns keep showing up.</p>
+
+      <p>Practice enough and they start becoming part of your long-term memory naturally.</p>
+
+      <p>Instead of constantly rereading summaries, use your notes when you actually need them.</p>
+
+      <p>Before a CTF.</p>
+
+      <p>Before a lab.</p>
+
+      <p>When you forget something.</p>
+
+      <p>When you find a vulnerability and need to understand a specific concept.</p>
+
+      <p>That’s studying on demand.</p>
+
+      <h2>Conclusion</h2>
+
+      <p>This is just the basic mindset that works for me.</p>
+
+      <p>Now it’s your responsibility to build your own study method.</p>
+
+      <p>Maybe everything I said works perfectly for you.</p>
+
+      <p>Maybe half of it works.</p>
+
+      <p>Maybe none of it works.</p>
+
+      <p>And that’s completely normal.</p>
+
+      <p>Learning is personal.</p>
+
+      <p>Use AI.</p>
+
+      <p>Experiment.</p>
+
+      <p>Change your method.</p>
+
+      <p>Understand how your own brain learns.</p>
+
+      <p>And build a study system that actually works for you. 😀</p>
+
+      <a class="back-link" href="./">← voltar</a>
+    </article>
+  </main>
+
+  <footer class="site-footer wrap">
+    <span>poystick</span>
+    <span>metodologia</span>
+  </footer>
+</body>
+</html>

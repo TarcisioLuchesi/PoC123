@@ -344,10 +344,10 @@ pre{
 
   <main class="wrap">
     <section class="intro">
-      <p class="label">security research / wordpress</p>
+      <p class="label">security research / web applications</p>
       <h1>Poystick</h1>
       <p class="lead">
-        Sou pesquisador de segurança com foco em plugins e temas WordPress.
+        Sou pesquisador de segurança com foco em aplicações web, plugins e temas WordPress.
         Aqui eu publico algumas análises, CVEs, anotações de code review e PoCs.
       </p>
       <p class="small">
@@ -369,17 +369,18 @@ pre{
         <button type="button" class="active" data-origin-filter="all">Todas</button>
         <button type="button" data-origin-filter="own">CVEs próprias</button>
         <button type="button" data-origin-filter="third-party">Terceiros</button>
+        <button type="button" data-origin-filter="educational">Educacionais</button>
       </div>
       <p class="method-note">
         CVEs próprias = vulnerabilidades atribuídas a Tarcísio Luchesi (Poystick).
-        Terceiros = vulnerabilidades descobertas por outros hunters.
+        Terceiros = vulnerabilidades descobertas por outros hunters. Educacionais = fundamentos e metodologias, sem atribuição de falha.
       </p>
     </section>
 
     <section id="writeups" class="section">
       <div class="section-title">
         <h2>Write-ups</h2>
-        <span>03 publicados</span>
+        <span>04 publicados</span>
       </div>
 
       <a class="post-row" data-method="ai-assisted" data-origin="third-party" href="research/steam-chat-xss-to-rce.html">
@@ -389,6 +390,18 @@ pre{
           <p>
             Artigo didático criado com IA e tecnicamente revisado/validado por mim, reconstruindo a cadeia
             de uma falha pública de terceiro desde as primitives de XSS/URL até a fronteira nativa e o RCE.
+          </p>
+        </div>
+        <span class="arrow">→</span>
+      </a>
+
+      <a class="post-row" data-method="ai-assisted" data-origin="educational" href="research/black-box-newsletter-consent.html">
+        <div>
+          <p class="post-date">2026-10-07 <span class="method-badge">AI-Assisted</span> <span class="method-badge">Material educativo</span></p>
+          <h3>Do formulário à API — análise black box de integrações de newsletter</h3>
+          <p>
+            Dos fundamentos cliente-servidor ao controle de parâmetros, trust boundaries,
+            validação segura e autorização em backends sem CMS.
           </p>
         </div>
         <span class="arrow">→</span>

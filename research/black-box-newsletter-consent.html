@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Guia black box para entender e validar falhas de confiança em formulários de newsletter, do modelo cliente-servidor à autorização no backend.">
+  <meta name="theme-color" content="#0a0a0a">
+  <title>Formulários de newsletter em aplicações sem CMS — poystick</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="logo" href="../">poystick<span>.</span></a>
+    <nav>
+      <a href="../#writeups">write-ups</a>
+      <a href="../#pocs">PoCs</a>
+      <a href="../methodology.html">metodologia de estudo</a>
+      <a href="../wordpress-methodology.html">metodologia WordPress</a>
+      <a href="../#sobre">sobre</a>
+      <a href="https://github.com/TarcisioLuchesi">github ↗</a>
+    </nav>
+  </header>
+
+  <main class="article-shell">
+    <section class="article-hero">
+      <div class="kicker">black box / aplicações web / newsletter</div>
+      <h1>Do formulário à API</h1>
+      <p class="hero-copy">Um guia do básico ao avançado para analisar integrações de newsletter em sites sem CMS.</p>
+      <div class="article-meta">
+        <span>Black-box testing</span>
+        <span>Trust boundaries</span>
+        <span>Business logic</span>
+        <span>CWE-472</span>
+        <span>CWE-862</span>
+      </div>
+      <div class="article-meta">
+        <span>Material didático</span>
+        <span>Exemplos somente para ambientes autorizados</span>
+        <span>Sem fingerprinting externo</span>
+      </div>
+    </section>
+
+    <article class="article">
+      <p>
+        Uma integração de newsletter pode parecer apenas um formulário com um campo de e-mail.
+        Por trás dele, porém, pode haver um endpoint próprio que usa uma credencial do servidor
+        para cadastrar contatos em Mailchimp ou em outro provedor. O risco aparece quando o
+        backend deixa o visitante escolher parâmetros que deveriam vir da configuração confiável
+        do formulário.
+      </p>
+
+      <div class="note">
+        <strong>Escopo deste guia:</strong> o caso analisado anteriormente era específico de uma
+        integração WordPress. Aqui, o foco é o mesmo padrão de confiança indevida em aplicações
+        sem WordPress: sites estáticos, frontends customizados e funções serverless. Isso descreve
+        uma classe de falha possível, não uma vulnerabilidade presente em todo formulário.
+      </div>
+
+      <h2>1. O básico: navegador, servidor e provedor</h2>
+      <p>
+        O <strong>frontend</strong> é a página aberta no navegador. Ele mostra os campos e monta
+        a requisição. O <strong>backend</strong> é a API ou função do site que recebe essa
+        requisição. O <strong>provedor</strong> é o serviço externo que mantém a lista de contatos.
+      </p>
+      <p>
+        Quando o backend conversa com o provedor usando uma chave de API guardada no servidor,
+        ele possui uma capacidade que o visitante não deveria controlar diretamente. O backend
+        precisa decidir qual formulário está sendo enviado, a qual audiência ele pertence e quais
+        regras de inscrição se aplicam.
+      </p>
+      <p>
+        Uma <strong>audiência</strong> é a lista ou grupo de contatos de destino. O
+        <strong>double opt-in</strong> é um fluxo em que a pessoa recebe uma mensagem e precisa
+        confirmar a inscrição. Consentimento, audiência e confirmação são decisões diferentes:
+        a presença de um e-mail válido não prova, por si só, que seu titular pediu a inscrição.
+      </p>
+
+      <h2>2. O modelo de dados</h2>
+      <p>
+        No black box, trate cada valor enviado pelo navegador como entrada controlada pelo cliente.
+        Um campo oculto continua editável; JavaScript também pode ser pausado ou modificado. Entre
+        os valores comuns estão <code>email</code>, <code>form_id</code>, <code>audience_id</code>,
+        <code>tags</code> e <code>double_opt_in</code>.
+      </p>
+      <p>
+        O dado de origem, ou <strong>source</strong>, é o valor que entra na aplicação. O
+        <strong>sink</strong> é o ponto onde ele causa um efeito sensível, como uma chamada à API
+        do provedor que cria ou atualiza um contato. Seguir esse caminho ajuda a separar uma
+        mudança visual no navegador de uma mudança realmente aceita pelo servidor.
+      </p>
+
+      <div class="flow">campos preenchidos no navegador
+  ↓
+requisição HTTP para a aplicação
+  ↓
+endpoint próprio ou função serverless
+  ↓
+validação e resolução da configuração do formulário
+  ↓
+chamada autenticada ao provedor de newsletter
+  ↓
+contato criado, atualizado ou deixado pendente</div>
+
+      <h2>3. A teoria da falha: confiança indevida em parâmetros</h2>
+      <p>
+        Imagine que o backend recebe <code>audience_id</code> e <code>double_opt_in</code> do
+        cliente. Se usa esses valores sem compará-los com uma configuração autorizada, o visitante
+        pode tentar trocar a lista de destino ou alterar o fluxo de confirmação.
+      </p>
+      <p>
+        O problema não é o cliente conseguir editar a própria requisição — isso é esperado. O
+        problema é o servidor tratar os valores alterados como decisões confiáveis. Uma validação
+        de formato pode confirmar que um ID parece válido, mas não responde se aquele formulário
+        tem permissão para usar essa audiência.
+      </p>
+      <p>
+        Também é importante separar <strong>autorização</strong> de <strong>proteção contra CSRF</strong>.
+        Um token público ou nonce pode ajudar a reconhecer uma requisição originada pelo fluxo do
+        site, mas não deve conceder ao visitante o direito de escolher a audiência nem de mudar a
+        política de inscrição.
+      </p>
+
+      <h2>4. Onde procurar essa funcionalidade</h2>
+      <p>
+        Procure funções de cadastro em newsletter, assinatura de mailing list, captura de leads,
+        inscrição em novidades ou formulários que sincronizam contatos com um CRM. A aplicação
+        pode usar uma API em Node, PHP, Python, uma função serverless ou uma plataforma de
+        automação.
+      </p>
+      <p>
+        Na aba <strong>Network</strong> do navegador, observe para onde o formulário envia os
+        dados. Se a requisição vai para uma rota do próprio domínio, existe um backend a investigar.
+        Se o formulário envia diretamente ao provedor, essa falha específica no backend do site
+        pode não existir; ainda assim, não conclua nada apenas pela aparência do formulário.
+      </p>
+
+      <h2>5. Validação black box, passo a passo</h2>
+      <p><strong>Passo 1 — confirme o escopo e o ambiente.</strong> Use um ativo autorizado. Prefira staging, uma conta de teste ou um mock do provedor. Uma requisição válida pode alterar contatos reais.</p>
+      <p><strong>Passo 2 — capture o fluxo normal.</strong> Envie um endereço controlado por você e guarde a rota, o método, os nomes dos parâmetros e a resposta. Redija tokens e dados pessoais ao salvar evidências.</p>
+      <p><strong>Passo 3 — formule uma hipótese.</strong> Pergunte se o servidor decide a audiência a partir do ID do formulário ou se aceita uma audiência enviada pelo cliente. Faça uma alteração por vez.</p>
+      <p><strong>Passo 4 — teste com dados próprios.</strong> Em staging, altere ou remova o identificador do formulário e, quando autorizado, envie a audiência de teste. Para consentimento, use apenas um contato controlado e uma configuração isolada.</p>
+      <p><strong>Passo 5 — confirme no sink.</strong> Confira os logs do backend ou o estado do contato na audiência de teste. Uma resposta HTTP 200 não prova que o provedor aceitou a mudança, e uma mensagem de sucesso na interface não prova qual estado foi gravado.</p>
+      <p><strong>Passo 6 — pare após a confirmação.</strong> Não use endereços de terceiros, não enumere IDs de audiências e não faça carga ou repetição em massa. Um único teste controlado costuma bastar para demonstrar o controle indevido.</p>
+
+      <h2>6. PoC conceitual para laboratório</h2>
+      <p>
+        O formato real depende da requisição observada. Este exemplo representa um backend próprio
+        e serve somente para um ambiente de teste. Não o envie a um domínio público sem autorização
+        e sem entender o efeito da integração.
+      </p>
+      <pre><code>POST /api/subscribe
+Content-Type: application/json
+
+{
+  "email": "ENDERECO_CONTROLADO_PELO_PESQUISADOR",
+  "form_id": "formulario-de-teste",
+  "audience_id": "audiencia-de-teste",
+  "double_opt_in": false
+}</code></pre>
+      <p>
+        O achado é confirmado se o backend usar sua credencial e realizar a inscrição com a
+        audiência ou regra controlada pelo pedido, sem verificar se esses valores pertencem à
+        configuração permitida para <code>formulario-de-teste</code>. Se o backend ignorar o campo,
+        rejeitar a requisição ou resolver a configuração no servidor, essa hipótese não se confirma
+        por esse teste.
+      </p>
+
+      <h2>7. Do intermediário ao avançado</h2>
+      <h3>Limite de confiança e invariantes</h3>
+      <p>
+        Escreva o que precisa permanecer verdadeiro: cada formulário usa uma audiência previamente
+        definida; somente o servidor decide se a confirmação é necessária; o e-mail recebido não
+        pode alterar esses controles. Depois, verifique se cada endpoint mantém essas invariantes,
+        inclusive quando faltam campos ou quando um identificador é inválido.
+      </p>
+      <h3>Autorização por objeto e separação entre clientes</h3>
+      <p>
+        Em sistemas com várias marcas, clientes ou contas, um <code>form_id</code> pode selecionar
+        configurações de outra organização. Verifique se o servidor associa o formulário ao tenant
+        correto, em vez de aceitar um identificador de audiência arbitrário. Não tente acessar
+        dados de outros clientes: valide apenas com recursos de teste autorizados.
+      </p>
+      <h3>Estado e transições</h3>
+      <p>
+        Modele estados como <code>pending</code>, <code>subscribed</code> e
+        <code>unsubscribed</code>. A análise avançada pergunta quais transições o endpoint permite,
+        quem pode solicitá-las e se uma atualização pode reativar um contato sem o fluxo esperado.
+        A resposta do provedor e suas regras também fazem parte da validação.
+      </p>
+      <h3>Replay, abuso e integrações</h3>
+      <p>
+        Depois de validar a autorização, examine separadamente repetição de pedidos, limites de
+        frequência, tratamento de falhas, duplicatas e webhooks de confirmação. Um limite por
+        cliente pode reduzir abuso, mas não corrige a autorização incorreta sobre audiência ou
+        consentimento. Não faça testes de volume sem autorização explícita.
+      </p>
+      <h3>Credenciais e fronteiras do provedor</h3>
+      <p>
+        Confirme que a chave de API não aparece no HTML, no bundle JavaScript ou na resposta ao
+        navegador. Uma chave exposta é um achado diferente. Quando o backend mantém a chave, a
+        evidência importante para este caso é mostrar que valores do cliente controlam uma chamada
+        autenticada do servidor.
+      </p>
+
+      <h2>8. Falsos positivos comuns</h2>
+      <p>
+        Um campo editável não basta para provar impacto. O backend pode ignorá-lo; o provedor pode
+        rejeitar a operação; ou o formulário pode enviar diretamente ao serviço sem um proxy do
+        site. Uma lista visível no navegador também não prova que o usuário consegue gravar contatos
+        nela. Confirme o efeito no sistema de destino de teste.
+      </p>
+
+      <h2>9. Impacto e severidade</h2>
+      <p>
+        Se confirmado, o impacto pode incluir inscrições indesejadas, alteração de contatos ou uso
+        indevido da audiência configurada. O alcance depende das credenciais e permissões do
+        backend, das audiências disponíveis e das regras do provedor. Não alegue acesso à chave,
+        leitura de contatos ou comprometimento da conta se o teste não demonstrar isso.
+      </p>
+      <p>
+        Para um relatório de bounty, descreva as pré-condições, o parâmetro controlado, o estado
+        observado no destino de teste e os limites da evidência. A classificação final deve seguir
+        o impacto real e as regras do programa.
+      </p>
+
+      <h2>10. Como corrigir</h2>
+      <p>
+        Associe cada formulário a uma configuração fixa no servidor. Receba do cliente apenas um
+        identificador opaco do formulário e os dados necessários do contato; resolva audiência,
+        tags e política de confirmação no backend. Rejeite formulários desconhecidos, aplique
+        autorização por tenant e mantenha a credencial do provedor fora do frontend.
+      </p>
+      <p>
+        A regra prática é simples: <strong>o navegador pode enviar uma intenção de inscrição; o
+        servidor decide a operação permitida</strong>.
+      </p>
+
+      <a class="back-link" href="../">← voltar</a>
+    </article>
+  </main>
+
+  <footer class="site-footer wrap">
+    <span>poystick</span>
+    <span>Black-box / newsletter integrations</span>
+  </footer>
+</body>
+</html>

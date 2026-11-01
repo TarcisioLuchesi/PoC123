@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Rastreamento de review_url até o sink HTML no aviso de avaliação do Icegram Collect 1.3.21 e limites de exploração.">
+  <meta name="theme-color" content="#0a0a0a">
+  <title>Icegram Collect 1.3.21: review_url sem escape — poystick</title>
+  <style>
+:root{--bg:#0a0a0a;--surface:#111111;--text:#e9e9e9;--muted:#8b8b8b;--line:#242424;--red:#ff3434;--blue:#3d5afe}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;font-size:15px;line-height:1.65}
+a{color:inherit} .site-header{width:min(900px,calc(100% - 32px));margin:0 auto;min-height:72px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
+.logo{font-weight:700;font-size:18px;text-decoration:none}.logo span{color:var(--red)}
+nav{display:flex;gap:22px;color:var(--muted);font-size:13px}nav a:hover{color:var(--text)}
+.article-shell{width:min(760px,calc(100% - 40px));margin:0 auto;padding:80px 0 100px}
+.article-hero{padding:20px 0 48px;border-bottom:1px solid var(--line)}
+.article-hero .kicker{color:var(--blue);font-size:12px;text-transform:uppercase}
+.article-hero h1{margin:14px 0 12px;font-size:clamp(40px,8vw,70px);line-height:.95;letter-spacing:-.07em}
+.hero-copy{margin:0;color:#bbb;font-family:Inter,system-ui,sans-serif;font-size:18px;line-height:1.6}
+.article-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}.article-meta span{padding:4px 8px;border:1px solid var(--line);color:#777;font-size:12px}
+.article{padding-top:42px;color:#c2c2c2;font-family:Inter,system-ui,sans-serif;font-size:16px;line-height:1.8}
+.article h2{margin:52px 0 12px;color:#f1f1f1;font:700 21px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace}
+.article h3{margin:30px 0 8px;color:#eee;font:700 16px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace}
+.article p code{padding:2px 5px;background:#151515;border:1px solid var(--line);border-radius:4px;color:#eee}
+pre{overflow:auto;margin:20px 0 28px;padding:18px;background:#0e0e0e;border:1px solid var(--line);border-left:3px solid var(--blue);color:#d7d7d7;font:13px/1.7 ui-monospace,SFMono-Regular,Menlo,monospace}
+.flow{white-space:pre-wrap;margin:24px 0;padding:20px;background:#0e0e0e;border:1px solid var(--line);border-left:3px solid var(--red);color:#ddd;font:13px/1.8 ui-monospace,SFMono-Regular,Menlo,monospace}
+.note{margin:24px 0;padding:18px 20px;background:#111;border:1px solid var(--line);border-left:3px solid #777}
+.note strong{color:#fff}.back-link{display:inline-block;margin-top:40px;color:#888;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}.back-link:hover{color:var(--red)}
+@media(max-width:600px){.site-header{align-items:flex-start;padding:18px 0}nav{gap:12px;flex-wrap:wrap;justify-content:flex-end}.article-shell{padding-top:56px}}
+  
+.article p{margin:0 0 20px}.article code{padding:2px 5px;background:#151515;border:1px solid var(--line);border-radius:4px;color:#eee;font:13px/1.7 ui-monospace,SFMono-Regular,Menlo,monospace}.article pre code{padding:0;border:0;background:none;border-radius:0;color:inherit}.article .note{line-height:1.7}.article .note code{white-space:normal}.article .flow{white-space:pre-wrap}.article a{color:#9fb0ff}.article a:hover{color:#c3ccff}
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="logo" href="../">poystick<span>.</span></a>
+    <nav>
+      <a href="../#writeups">write-ups</a>
+      <a href="../#pocs">PoCs</a>
+      <a href="../methodology.html">metodologia de estudo</a>
+      <a href="../wordpress-methodology.html">metodologia WordPress</a>
+      <a href="../#sobre">sobre</a>
+      <a href="https://github.com/TarcisioLuchesi">github ↗</a>
+    </nav>
+  </header>
+  <main class="article-shell">
+    <section class="article-hero">
+      <div class="kicker">wordpress / análise de código / sink sem escape</div>
+      <h1>Icegram Collect 1.3.21</h1>
+      <p class="hero-copy">Do hook <code>admin_notices</code> ao <code>review_url</code> impresso no <code>meta refresh</code>, com as condições que limitam a exploração.</p>
+      <div class="article-meta">
+        <span>PHP</span><span>WordPress</span><span>Reflected HTML injection</span><span>Impacto externo não demonstrado</span>
+      </div>
+      <div class="article-meta">
+        <span>2026-11-01</span><span>Análise estática</span><span>AI-Assisted</span><span>CVE: não atribuído</span>
+      </div>
+    </section>
+    <article class="article">
+      <div class="note">Análise do código da versão 1.3.21. O sink permite injetar marcação HTML quando a requisição traz um nonce administrativo válido. Não foi demonstrado um caminho de exploração por visitante, Subscriber ou outro usuário sem <code>manage_options</code>.</div>
+      <div class="flow">Rainmaker::__construct()
+  ↓
+IG_Feedback_V_1_2_5::__construct()
+  ↓ admin_notices
+show_review_notice()
+  ↓ tela + manage_options + 2 leads
+nonce review + ação ig_rm_feedback_review_done
+  ↓
+$_GET['review_url']
+  ↓
+&lt;meta content="0; url=..."&gt;</div>
+      <h2>Resumo</h2>
+      <p>O aviso de avaliação do Icegram Collect recebe <code>review_url</code> pela query string e o imprime diretamente dentro do atributo <code>content</code> de uma tag <code>&lt;meta http-equiv=&quot;refresh&quot;&gt;</code>. Aspas no valor podem encerrar o atributo e fazer o navegador interpretar novas tags. O problema de escape existe no código; o fluxo normal exige uma tela administrativa específica, a capacidade <code>manage_options</code>, pelo menos dois leads publicados e o nonce <code>review</code> do próprio usuário. A análise disponível não demonstra que um atacante externo consiga fornecer uma URL maliciosa com o nonce de um administrador.</p>
+      <p>Examinei o pacote identificado como versão 1.3.21 no cabeçalho de <code>icegram-rainmaker.php</code> e em <code>readme.txt</code>. Os trechos abaixo são desse pacote. Esta é uma análise estática: não há registro de execução do payload no navegador, nem histórico verificado para definir a primeira versão afetada ou uma versão corrigida.</p>
+      <h2>1. Do construtor ao hook</h2>
+      <p>Em <code>lite/classes/class-icegram-rainmaker.php:85-96</code>, <code>Rainmaker</code> carrega a classe de feedback e a instancia com o prefixo <code>ig_rm</code>:</p>
+      <pre><code class="language-php">$ig_feedback_class = 'IG_Feedback_V_' . str_replace( '.', '_', $feedback_version );
+$ig_rm_feedback    = new $ig_feedback_class( 'Rainmaker', 'icegram-rainmaker', 'ig_rm', 'rmfree.', false );</code></pre>
+      <p>O construtor de <code>IG_Feedback_V_1_2_5</code> primeiro consulta <code>can_show_feedback_widget()</code>. Se o recurso estiver habilitado para o ambiente, registra o aviso em <code>admin_notices</code> (<code>lite/classes/feedback/class-ig-feedback.php:106-121</code>):</p>
+      <pre><code class="language-php">if ( ! $this-&gt;can_show_feedback_widget() ) {
+    return;
+}
+add_action( 'admin_notices', array( &amp;$this, 'show_review_notice' ) );</code></pre>
+      <p>Assim, <code>show_review_notice()</code> é chamado durante a renderização de avisos de páginas administrativas. Essa ligação pelo hook é o ponto de entrada do fluxo de leitura de <code>review_url</code>.</p>
+      <h2>2. Quem alcança o aviso</h2>
+      <p><code>show_review_notice()</code> aplica o filtro <code>ig_rm_can_ask_user_for_review</code> antes de processar os parâmetros da URL (<code>class-ig-feedback.php:192-194</code>). A implementação em <code>lite/classes/feedback.php:78-93</code> exige uma tela do Icegram Collect, <code>manage_options</code> e ao menos dois leads publicados:</p>
+      <pre><code class="language-php">$screen = get_current_screen();
+if ( ! in_array( $screen-&gt;id, array( 'edit-rainmaker_form', 'rainmaker_form', 'edit-rainmaker_lead', 'rainmaker_form_page_icegram-rainmaker-support', 'rainmaker_form_page_icegram-rainmaker-upgrade' ), true ) ) {
+    return false;
+}
+if ( ! current_user_can( 'manage_options' ) ) {
+    return false;
+}
+$total_rm_leads         = wp_count_posts( 'rainmaker_lead' );
+$total_rm_leads_publish = $total_rm_leads-&gt;publish;
+if ( $total_rm_leads_publish &lt; 2 ) {
+    return false;
+}</code></pre>
+      <p>O método também consulta estados no <code>user_meta</code>, como <code>ig_rm_feedback_review_done</code>, e pode suprimir o aviso depois que o usuário responde (<code>class-ig-feedback.php:150-192</code>). Um Subscriber ou visitante não passa pelo filtro padrão; a checagem de capacidade é o limite de acesso decisivo.</p>
+      <h2>3. Como o nonce entra no link</h2>
+      <p>Quando o aviso é mostrado, o plugin gera um nonce para a ação <code>review</code> e o coloca no link “Ok, you deserve it” junto com a ação e o destino de avaliação (<code>class-ig-feedback.php:249-251</code>):</p>
+      <pre><code class="language-php">$nonce = wp_create_nonce( 'review' );
+$review_url = add_query_arg( 'review_url', $review_url, add_query_arg( 'ig_feedback_nonce', $nonce, add_query_arg( 'ig_feedback_action', $review_done_option, $current_page_url ) ) );</code></pre>
+      <p>O destino gerado normalmente é a página de avaliações do plugin no WordPress.org (<code>class-ig-feedback.php:233</code>). O nonce aparece no HTML entregue ao administrador elegível. Não encontrei, neste fluxo, uma forma de uma conta de baixo privilégio obter o nonce da sessão de outra pessoa.</p>
+      <h2>4. Da query string ao sink</h2>
+      <p>Na requisição feita ao clicar no link, <code>show_review_notice()</code> verifica <code>ig_feedback_nonce</code> com <code>wp_verify_nonce()</code> e só continua se a ação for válida (<code>class-ig-feedback.php:200-213</code>):</p>
+      <pre><code class="language-php">$nonce_verified = wp_verify_nonce( $nonce, 'review' );
+if ( $nonce_verified ) {
+    $action = ! empty( $_GET['ig_feedback_action'] ) ? esc_attr( wp_unslash( $_GET['ig_feedback_action'] ) ) : '';</code></pre>
+      <p>Para chegar ao redirecionamento, a ação deve corresponder a <code>ig_rm_feedback_review_done</code>. Antes da saída, o código grava essa ação no <code>user_meta</code>; por isso, a tentativa também marca o aviso como concluído para aquele usuário.</p>
+      <p>A fonte controlável é <code>$_GET['review_url']</code>. O valor não recebe validação de destino nem escape de atributo antes da impressão (<code>class-ig-feedback.php:215-220</code>):</p>
+      <pre><code class="language-php">$url = ! empty( $_GET['review_url'] ) ? $_GET['review_url'] : '';
+if ( ! empty( $url ) ) {
+    ?&gt;
+    &lt;meta http-equiv=&quot;refresh&quot; content=&quot;0; url=&lt;?php echo $url; ?&gt;&quot;/&gt;
+    &lt;?php
+}</code></pre>
+      <p>O sink é um atributo HTML delimitado por aspas duplas. Uma aspa dupla em <code>review_url</code> pode fechar o atributo <code>content</code> e permitir que a sequência seguinte seja interpretada como nova marcação. Essa conclusão é estática; a execução em navegador não foi observada nesta análise.</p>
+      <h2>5. Limites da evidência</h2>
+      <p>A análise estática confirma a interpolação sem escape, mas não registra uma execução de JavaScript no navegador. Um teste local exigiria uma sessão administrativa elegível, o aviso visível e o nonce daquele usuário. Ao seguir a ação de avaliação, o plugin marca o aviso como concluído no <code>user_meta</code>, o que afeta novas tentativas na mesma conta.</p>
+      <h2>6. Impacto e correção</h2>
+      <p>A falha concreta é imprimir um parâmetro da requisição sem escape no contexto de um atributo HTML. O código revisado não mostra uma cadeia em que um visitante ou Subscriber obtenha o nonce de um administrador e o faça abrir uma URL alterada. Portanto, não há impacto real <strong>demonstrado para um atacante externo</strong> nesta análise. Uma divulgação como XSS explorável por baixo privilégio, com CVE ou severidade atribuída, não seria sustentada por essas evidências.</p>
+      <p>A correção mais simples é construir o destino de avaliação no servidor, a partir do identificador do plugin, sem aceitar <code>review_url</code> da query string. Se o parâmetro continuar necessário, valide o protocolo e o host permitido e escape o valor completo do atributo imediatamente antes da saída. Um teste de regressão deve cobrir aspas e tags em <code>review_url</code>, além de confirmar que requisições sem nonce válido ou sem <code>manage_options</code> não alcançam a saída.</p>
+      <h2>Conclusão</h2>
+      <p>O caminho <code>Rainmaker::__construct() → IG_Feedback_V_1_2_5::__construct() → admin_notices → show_review_notice() → filtro de elegibilidade → nonce/ação → $_GET['review_url'] → atributo content</code> confirma uma saída sem escape no pacote 1.3.21. O limite de privilégio e o nonce impedem, com as evidências disponíveis, afirmar uma exploração por usuário externo ou de baixo privilégio.</p>
+      <a class="back-link" href="../#writeups">← voltar aos write-ups</a>
+      <p><a href="./icegram-collect-1.3.21-review-url-sem-escape.md">Ler a fonte Markdown deste artigo</a></p>
+    </article>
+  </main>
+</body>
+</html>

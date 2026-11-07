@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="120" viewBox="0 0 240 120">
+  <rect width="240" height="120" fill="#14213d"/>
+  <text x="120" y="54" font-size="19" fill="white" text-anchor="middle">SVG PoC</text>
+  <text x="120" y="81" font-size="12" fill="#eeeeee" text-anchor="middle">Authorized security test</text>
+  <script><![CDATA[alert('SVG XSS PoC')]]></script>
+</svg>

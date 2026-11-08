@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Write-up por Poystick: análise de XSS refletido em nomes de parâmetros GET, normalização de chaves PHP e construção de um payload dotless com Base64.">
+  <meta name="theme-color" content="#0a0a0a">
+  <title>XSS refletido, PHP e payload dotless — poystick</title>
+  <style>
+    :root{--bg:#0a0a0a;--text:#e9e9e9;--muted:#969696;--line:#242424;--red:#ff3434;--blue:#3d5afe}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;font-size:15px;line-height:1.7}
+    a{color:#b5c0ff;text-decoration:none}a:hover{color:white}
+    .site-header{width:min(900px,calc(100% - 32px));margin:0 auto;min-height:72px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
+    .logo{color:#eee;font-size:18px;font-weight:700}.logo span{color:var(--red)}
+    nav{display:flex;flex-wrap:wrap;gap:18px;color:var(--muted);font-size:13px}nav a{color:#999}
+    .article-shell{width:min(760px,calc(100% - 40px));margin:0 auto;padding:72px 0 90px}
+    .article-hero{padding:20px 0 45px;border-bottom:1px solid var(--line)}
+    .kicker{color:var(--blue);text-transform:uppercase;font-size:12px;letter-spacing:.08em}
+    h1{margin:15px 0 18px;font-size:clamp(36px,7vw,61px);line-height:1.09;letter-spacing:-.05em}
+    .hero-copy{margin:0;color:#c2c2c2;font:19px/1.65 Inter,system-ui,sans-serif}
+    .article-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:21px}
+    .article-meta span{border:1px solid #313131;padding:4px 8px;color:#999;font-size:12px}
+    .article{padding-top:32px;color:#c8c8c8;font:16px/1.85 Inter,system-ui,sans-serif}
+    .article h2{margin:48px 0 12px;color:#f1f1f1;font:700 21px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace}
+    .article h3{margin:26px 0 10px;color:#eee;font:700 16px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace}
+    .article p{margin:15px 0}
+    .article code{padding:2px 5px;background:#151515;border:1px solid var(--line);border-radius:3px;font:0.88em ui-monospace,SFMono-Regular,Menlo,monospace;color:#eee}
+    pre{overflow-x:auto;white-space:pre;margin:20px 0 26px;padding:18px;background:#0e0e0e;border:1px solid var(--line);border-left:3px solid var(--blue);color:#d7d7d7;font:13px/1.75 ui-monospace,SFMono-Regular,Menlo,monospace}
+    pre code{background:none!important;border:0!important;padding:0!important;font:inherit!important;color:inherit!important}
+    .flow{white-space:pre-wrap;margin:24px 0;padding:20px;background:#0e0e0e;border:1px solid var(--line);border-left:3px solid var(--red);color:#ddd;font:13px/1.85 ui-monospace,SFMono-Regular,Menlo,monospace}
+    .note{margin:24px 0;padding:16px 19px;border:1px solid var(--line);border-left:3px solid #777;background:#111}
+    .note strong{color:#fff}
+    .article ul{padding-left:24px}.article li{margin:10px 0}
+    .back-link{display:inline-block;margin-top:42px;color:#aaa;font:14px ui-monospace,SFMono-Regular,Menlo,monospace}
+    .site-footer{width:min(760px,calc(100% - 40px));margin:0 auto;border-top:1px solid var(--line);padding:30px 0 42px;display:flex;justify-content:space-between;gap:18px;color:#777;font-size:12px}
+    @media(max-width:600px){.site-header{align-items:flex-start;padding:16px 0}.article-shell{padding-top:50px}nav{justify-content:flex-end;gap:12px}.site-footer{flex-direction:column}}
+  </style>
+</head>
+<body>
+<header class="site-header">
+  <a class="logo" href="../">poystick<span>.</span></a>
+  <nav>
+    <a href="../#writeups">write-ups</a>
+    <a href="../#pocs">PoCs</a>
+    <a href="../methodology.html">metodologia</a>
+    <a href="../#sobre">sobre</a>
+    <a href="https://github.com/TarcisioLuchesi" target="_blank" rel="noopener noreferrer">github ↗</a>
+  </nav>
+</header>
+
+<main class="article-shell">
+<section class="article-hero">
+  <div class="kicker">Web Security / PHP / Reflected XSS</div>
+  <h1>XSS refletido em nomes de parâmetros: contornando a normalização do PHP com um payload dotless</h1>
+  <p class="hero-copy">Como investiguei a reflexão de chaves GET em HTML e cheguei a uma alternativa com Base64 para evitar caracteres que o PHP transforma ao processar parâmetros.</p>
+  <div class="article-meta">
+    <span>08 nov 2026</span><span>Pesquisa própria</span><span>PHP</span><span>WordPress</span><span>CWE-79</span><span>XSS refletido</span>
+  </div>
+  <div class="article-meta">
+    <span>Por Tarcísio Luchesi (Poystick)</span><span>Write-up: AI-Assisted</span>
+    <span>Identificador CVE: não informado</span>
+  </div>
+</section>
+<article class="article">
+  <p>Durante uma pesquisa em uma aplicação WordPress, encontrei um comportamento interessante: a interface devolvia nomes de parâmetros GET para a resposta HTML. O detalhe é que esses nomes, quando inseridos sem escape no contexto de marcação, também podem se tornar uma entrada para XSS refletido.</p>
+  <p>O que mais chamou minha atenção não foi apenas a reflexão. Foi o caminho entre o navegador e o PHP. Eu precisava entender o que acontecia com os caracteres do payload quando eles eram usados como <strong>nome do parâmetro</strong>, e não como valor.</p>
+
+  <h2>O ponto de entrada: a chave GET</h2>
+  <p>Em testes mais comuns de XSS, normalmente controlamos um valor, como <code>?q=teste</code>. Neste caso, a hipótese era diferente: o nome do parâmetro poderia chegar ao HTML sem codificação contextual adequada. Por isso, olhar apenas para <code>$_GET['q']</code> não era suficiente; eu precisava observar como a aplicação recuperava e exibia as próprias chaves.</p>
+  <pre><code>GET /pagina-de-teste?chave_controlada=1 HTTP/1.1
+Host: laboratorio.example</code></pre>
+  <p>Se <code>chave_controlada</code> aparece em uma resposta HTML, o próximo passo é verificar <em>onde</em> ela aparece: em texto, em um atributo, dentro de JavaScript ou em outro contexto. É essa posição que determina se a reflexão é perigosa e qual forma de escape seria necessária.</p>
+
+  <h2>O obstáculo: a normalização de nomes no PHP</h2>
+  <p>O PHP possui um comportamento específico ao interpretar nomes de parâmetros externos. Caracteres como pontos e espaços podem ser convertidos para underscores. Colchetes, por sua vez, participam da sintaxe de arrays e também afetam como a chave é interpretada.</p>
+  <pre><code>// Exemplo conceitual de interpretação de chaves:
+?nome.campo=1     → nome_campo
+?nome%20campo=1   → nome_campo</code></pre>
+  <p>Isso afeta diretamente expressões JavaScript que contêm pontos. Se eu colocar uma expressão como <code>document.cookie</code> em uma chave que passa pela normalização do PHP, o ponto pode deixar de existir. O JavaScript que chega ao navegador já não é a mesma expressão que eu havia planejado.</p>
+  <p>Esse detalhe também exige cuidado na análise: nem toda aplicação usa a chave normalizada para gerar a resposta. É necessário observar o HTML efetivamente devolvido, porque um sistema também pode refletir a query string original.</p>
+
+  <h2>Minha abordagem: payload sem pontos (dotless)</h2>
+  <p>Em vez de insistir na notação tradicional de propriedades do JavaScript, trabalhei com uma representação codificada. A ideia foi manter a expressão original dentro de uma string Base64 e reconstruí-la apenas no navegador, com <code>atob()</code> e o construtor <code>Function</code>.</p>
+  <p>Assim, a expressão sensível aos caracteres do nome do parâmetro deixa de aparecer diretamente na chave GET. O navegador faz a decodificação depois que a resposta já foi interpretada como código JavaScript.</p>
+  <div class="flow">Nome de parâmetro controlado
+   ↓
+Parser PHP / normalização de chaves
+   ↓
+Reflexão no HTML sem escape contextual
+   ↓
+JavaScript no navegador
+   ↓
+atob() → código reconstruído em memória
+   ↓
+Function() → execução no contexto da página</div>
+
+  <h2>PoC simplificada para compreender a técnica</h2>
+  <p>Para mostrar o mecanismo sem publicar uma rotina de coleta de sessão, este é um exemplo autocontido e inofensivo, adequado a um console ou laboratório próprio:</p>
+  <pre><code>Function(atob('YWxlcnQoMSk'))()</code></pre>
+  <p>A string decodificada corresponde a:</p>
+  <pre><code>alert(1)</code></pre>
+  <p>O Base64 desse exemplo foi escrito sem o caractere final de padding <code>=</code>; a função <code>atob()</code> aceita essa forma neste caso. O objetivo não é dizer que todo payload desse tipo funciona em qualquer aplicação, mas demonstrar por que uma representação codificada pode evitar certos caracteres na superfície de entrada.</p>
+  <div class="note"><strong>Nota sobre a evidência:</strong> o relatório original descreve uma PoC com chamada de rede e acesso a <code>document.cookie</code>. Nesta publicação, preservei o mecanismo técnico, mas substituí a rotina de exfiltração por uma demonstração local. A publicação não inclui domínio real de teste, sessão ou identificador de Webhook.</div>
+
+  <h2>Por que isso pode ultrapassar uma filtragem?</h2>
+  <p>Uma filtragem que dependa de detectar padrões literais como certas propriedades do JavaScript pode não enxergar o conteúdo depois de codificado. O mesmo raciocínio vale para regras de WAF que tratam alguns caracteres ou assinaturas isoladamente. No entanto, <strong>um payload ter uma forma diferente não comprova, por si só, um bypass universal de WAF</strong>.</p>
+  <p>Para afirmar que contornei uma regra específica, preciso comparar as respostas do ambiente: o bloqueio do payload original, a aceitação da variação e, principalmente, a execução real no navegador. É a evidência, não apenas a string, que determina a conclusão.</p>
+
+  <h2>Impacto e limites do que a PoC demonstra</h2>
+  <p>Uma XSS refletida explorável permite executar JavaScript na origem da aplicação quando a vítima acessa uma URL preparada. Isso pode viabilizar interações indevidas com a interface e acesso a informações que estejam disponíveis ao JavaScript naquela origem.</p>
+  <p>No cenário descrito no relatório, a leitura de <code>document.cookie</code> foi considerada como possibilidade de impacto. Porém, cookies protegidos com <code>HttpOnly</code> não ficam acessíveis por essa API. Além disso, ler um cookie não equivale automaticamente a demonstrar <em>Account Takeover</em>. Uma conclusão desse tipo requer evidências adicionais do mecanismo de sessão e do contexto de exploração.</p>
+  <p>Outra distinção importante: se a reflexão ocorre em uma tela administrativa, o alcance do ataque depende de quem pode acessar essa tela, de como a requisição é construída e das proteções efetivas da aplicação, incluindo CSP.</p>
+
+  <h2>Como corrigir o problema</h2>
+  <p>A correção deve acontecer no contexto de saída, impedindo que um nome de parâmetro controlado seja interpretado como HTML ou JavaScript. Em WordPress, eu começaria pelos pontos que renderizam os dados:</p>
+  <ul>
+    <li><code>esc_html()</code> para conteúdo exibido como texto HTML;</li>
+    <li><code>esc_attr()</code> quando o dado precisa aparecer em um atributo HTML;</li>
+    <li><code>esc_url()</code> quando a saída é uma URL;</li>
+    <li>validação explícita dos nomes de parâmetros esperados, em vez de refletir chaves arbitrárias.</li>
+  </ul>
+  <pre><code>// Exemplo para exibição de texto HTML em WordPress
+echo esc_html($nome_do_parametro);</code></pre>
+  <p>Uma <em>Content Security Policy</em> restritiva pode acrescentar defesa em profundidade, mas não substitui escape contextual e validação na aplicação.</p>
+
+  <h2>O que levei dessa pesquisa</h2>
+  <p>O que eu achei mais interessante nesse caso foi perceber que o nome de um parâmetro também pode ser uma superfície de ataque. A investigação não terminou quando um payload tradicional deixou de funcionar. Eu precisei seguir a transformação da entrada pelo PHP, entender quais caracteres se perdiam e pensar em uma maneira de preservar a lógica JavaScript até a etapa de execução.</p>
+  <p>Esse é um aprendizado que tento aplicar nos meus testes: antes de mudar aleatoriamente um payload, entender o parser, a representação dos dados e o contexto onde eles serão usados. Foi essa diferença que tornou a análise interessante para mim.</p>
+
+  <div class="note"><strong>Sobre a CVE e a divulgação:</strong> o material usado neste write-up não apresenta um identificador CVE verificável, versão afetada, confirmação de correção ou aviso público do fornecedor. Por isso, registro o caso como pesquisa própria e não atribuo um número de CVE. Esses metadados podem ser adicionados quando estiverem documentados.</div>
+  <a class="back-link" href="../#writeups">← voltar aos write-ups</a>
+</article>
+</main>
+<footer class="site-footer"><span>poystick / Tarcísio Luchesi</span><span>Reflected XSS · PHP · Base64</span></footer>
+</body>
+</html>

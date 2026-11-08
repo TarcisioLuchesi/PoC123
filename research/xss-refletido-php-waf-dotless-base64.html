@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Write-up por Poystick: análise de XSS refletido em nomes de parâmetros GET, normalização de chaves PHP e construção de um payload dotless com Base64.">
+  <meta name="description" content="CVE-2026-61957: write-up de Tarcísio Luchesi (Poystick) sobre XSS refletido no miniOrange OTP Verification até 5.5.1, normalização de chaves PHP e payload dotless em Base64.">
   <meta name="theme-color" content="#0a0a0a">
-  <title>XSS refletido, PHP e payload dotless — poystick</title>
+  <title>CVE-2026-61957 — XSS refletido no miniOrange OTP Verification — poystick</title>
   <style>
     :root{--bg:#0a0a0a;--text:#e9e9e9;--muted:#969696;--line:#242424;--red:#ff3434;--blue:#3d5afe}
     *{box-sizing:border-box}html{scroll-behavior:smooth}
@@ -51,20 +51,25 @@
 
 <main class="article-shell">
 <section class="article-hero">
-  <div class="kicker">Web Security / PHP / Reflected XSS</div>
-  <h1>XSS refletido em nomes de parâmetros: contornando a normalização do PHP com um payload dotless</h1>
+  <div class="kicker">CVE-2026-61957 / WordPress / Reflected XSS</div>
+  <h1>CVE-2026-61957 — XSS refletido no miniOrange OTP Verification: PHP e payload dotless</h1>
   <p class="hero-copy">Como investiguei a reflexão de chaves GET em HTML e cheguei a uma alternativa com Base64 para evitar caracteres que o PHP transforma ao processar parâmetros.</p>
   <div class="article-meta">
-    <span>08 nov 2026</span><span>Pesquisa própria</span><span>PHP</span><span>WordPress</span><span>CWE-79</span><span>XSS refletido</span>
+    <span>08 nov 2026 · write-up</span><span>CVE-2026-61957</span><span>PHP</span><span>WordPress</span><span>CWE-79</span><span>CVSS 7.1</span>
   </div>
   <div class="article-meta">
     <span>Por Tarcísio Luchesi (Poystick)</span><span>Write-up: AI-Assisted</span>
-    <span>Identificador CVE: não informado</span>
+    <span>CVE publicada em 27 jul 2026</span>
   </div>
 </section>
 <article class="article">
-  <p>Durante uma pesquisa em uma aplicação WordPress, encontrei um comportamento interessante: a interface devolvia nomes de parâmetros GET para a resposta HTML. O detalhe é que esses nomes, quando inseridos sem escape no contexto de marcação, também podem se tornar uma entrada para XSS refletido.</p>
+  <p>Durante uma pesquisa no plugin <strong>miniOrange OTP Verification</strong> para WordPress, encontrei um comportamento interessante: a interface devolvia nomes de parâmetros GET para a resposta HTML. O detalhe é que esses nomes, quando inseridos sem escape no contexto de marcação, também podem se tornar uma entrada para XSS refletido.</p>
   <p>O que mais chamou minha atenção não foi apenas a reflexão. Foi o caminho entre o navegador e o PHP. Eu precisava entender o que acontecia com os caracteres do payload quando eles eram usados como <strong>nome do parâmetro</strong>, e não como valor.</p>
+
+  <h2>Identificação e divulgação responsável</h2>
+  <p>A vulnerabilidade que reportei recebeu o identificador <strong>CVE-2026-61957</strong>. A Patchstack registrou meu crédito como <strong>Tarcísio Luchesi (Poystick)</strong>, com reporte em 12 de junho de 2026 e publicação em 27 de julho de 2026. O problema afeta o <strong>miniOrange OTP Verification até a versão 5.5.1</strong>; a correção está disponível a partir da <strong>5.5.2</strong>.</p>
+  <p>O registro classifica a falha como <strong>CWE-79, XSS refletido não autenticado</strong>, com pontuação CVSS 3.1 de <strong>7.1 (alta)</strong> e necessidade de interação da vítima para exploração. A descrição oficial é resumida; o mecanismo detalhado abaixo é apresentado com base na minha análise técnica.</p>
+  <p>Referências públicas: <a href="https://patchstack.com/database/wordpress/plugin/miniorange-otp-verification/vulnerability/wordpress-miniorange-otp-verification-plugin-5-5-1-cross-site-scripting-xss-vulnerability" target="_blank" rel="noopener noreferrer">Patchstack</a> · <a href="https://www.cve.org/CVERecord?id=CVE-2026-61957" target="_blank" rel="noopener noreferrer">CVE Record</a>.</p>
 
   <h2>O ponto de entrada: a chave GET</h2>
   <p>Em testes mais comuns de XSS, normalmente controlamos um valor, como <code>?q=teste</code>. Neste caso, a hipótese era diferente: o nome do parâmetro poderia chegar ao HTML sem codificação contextual adequada. Por isso, olhar apenas para <code>$_GET['q']</code> não era suficiente; eu precisava observar como a aplicação recuperava e exibia as próprias chaves.</p>
@@ -128,10 +133,10 @@ echo esc_html($nome_do_parametro);</code></pre>
   <p>O que eu achei mais interessante nesse caso foi perceber que o nome de um parâmetro também pode ser uma superfície de ataque. A investigação não terminou quando um payload tradicional deixou de funcionar. Eu precisei seguir a transformação da entrada pelo PHP, entender quais caracteres se perdiam e pensar em uma maneira de preservar a lógica JavaScript até a etapa de execução.</p>
   <p>Esse é um aprendizado que tento aplicar nos meus testes: antes de mudar aleatoriamente um payload, entender o parser, a representação dos dados e o contexto onde eles serão usados. Foi essa diferença que tornou a análise interessante para mim.</p>
 
-  <div class="note"><strong>Sobre a CVE e a divulgação:</strong> o material usado neste write-up não apresenta um identificador CVE verificável, versão afetada, confirmação de correção ou aviso público do fornecedor. Por isso, registro o caso como pesquisa própria e não atribuo um número de CVE. Esses metadados podem ser adicionados quando estiverem documentados.</div>
+  <div class="note"><strong>Registro e correção confirmados:</strong> CVE-2026-61957 · miniOrange OTP Verification ≤ 5.5.1 · corrigido na versão 5.5.2 · CVSS 3.1: 7.1. Crédito público: Tarcísio Luchesi (Poystick), programa de Bug Bounty da Patchstack. Consulte o <a href="https://patchstack.com/database/wordpress/plugin/miniorange-otp-verification/vulnerability/wordpress-miniorange-otp-verification-plugin-5-5-1-cross-site-scripting-xss-vulnerability" target="_blank" rel="noopener noreferrer">registro da vulnerabilidade na Patchstack</a>.</div>
   <a class="back-link" href="../#writeups">← voltar aos write-ups</a>
 </article>
 </main>
-<footer class="site-footer"><span>poystick / Tarcísio Luchesi</span><span>Reflected XSS · PHP · Base64</span></footer>
+<footer class="site-footer"><span>poystick / Tarcísio Luchesi</span><span>CVE-2026-61957 · miniOrange OTP Verification</span></footer>
 </body>
 </html>
